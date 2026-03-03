@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1094119666664",
+    "project_id": "traxer-ba49d",
+    "storage_bucket": "traxer-ba49d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1094119666664:android:db74e33d97f88b0bf42a5d",
+        "android_client_info": {
+          "package_name": "com.app.traxer.traxer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTp2RlY0JAQBQyC9UasA9PB4B86pGTOCs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

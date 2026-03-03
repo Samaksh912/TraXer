@@ -1,15 +1,21 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import 'package:traxer/pages/homepage.dart';
+import 'firebase_options.dart';
 import 'models/isarexpense.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 // Global Theme Controller
 final ValueNotifier<ThemeMode> _themeNotifier = ValueNotifier(ThemeMode.system);
 // Global variable to access DB anywhere (Simple approach)
 late Isar isar;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // 1. Get the document directory
   final dir = await getApplicationDocumentsDirectory();
@@ -64,7 +70,12 @@ class MyApp extends StatelessWidget {
               bodyMedium: TextStyle(color: Colors.white70),
             ),
           ),
-          home: const HomePage(),
+          home: StreamBuilder<User?>(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (ctx, snap) {
+              return snap.hasData ? const HomePage() : const LoginPage();
+            },
+          ),
         );
       },
     );
