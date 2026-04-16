@@ -7,6 +7,7 @@ import 'firebase_options.dart';
 import 'models/isarexpense.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:traxer/Auth/screens/loginpage.dart';
 // Global Theme Controller
 final ValueNotifier<ThemeMode> _themeNotifier = ValueNotifier(ThemeMode.system);
 // Global variable to access DB anywhere (Simple approach)
@@ -70,13 +71,14 @@ class MyApp extends StatelessWidget {
               bodyMedium: TextStyle(color: Colors.white70),
             ),
           ),
-          home: StreamBuilder<User?>(
-            stream: FirebaseAuth.instance.authStateChanges(),
-            builder: (ctx, snap) {
-              return snap.hasData ? const HomePage() : const LoginPage();
-            },
-          ),
-        );
+          home: const HomePage()
+          // home: StreamBuilder<User?>(
+          //   stream: FirebaseAuth.instance.authStateChanges(),
+          //   builder: (ctx, snap) {
+          //     return snap.hasData ? const HomePage() : const LoginPage();
+        //     },
+        //   ),
+         );
       },
     );
   }
