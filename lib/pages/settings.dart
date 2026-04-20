@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final ValueNotifier<ThemeMode> _themeNotifier = ValueNotifier(ThemeMode.system);
-class SettingsPage extends StatelessWidget {
+import '../providers/app_providers.dart';
+
+class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentThemeMode = ref.watch(themeModeProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Settings"),
@@ -35,8 +39,8 @@ class SettingsPage extends StatelessWidget {
                     title: const Text("Light Mode"),
                     trailing: Radio<ThemeMode>(
                       value: ThemeMode.light,
-                      groupValue: _themeNotifier.value,
-                      onChanged: (val) => _themeNotifier.value = val!,
+                      groupValue: currentThemeMode,
+                      onChanged: (val) => ref.read(themeModeProvider.notifier).state = val!,
                     ),
                   ),
                   Divider(height: 1, color: Colors.grey.withOpacity(0.2)),
@@ -45,8 +49,8 @@ class SettingsPage extends StatelessWidget {
                     title: const Text("Dark Mode"),
                     trailing: Radio<ThemeMode>(
                       value: ThemeMode.dark,
-                      groupValue: _themeNotifier.value,
-                      onChanged: (val) => _themeNotifier.value = val!,
+                      groupValue: currentThemeMode,
+                      onChanged: (val) => ref.read(themeModeProvider.notifier).state = val!,
                     ),
                   ),
                   Divider(height: 1, color: Colors.grey.withOpacity(0.2)),
@@ -55,8 +59,8 @@ class SettingsPage extends StatelessWidget {
                     title: const Text("System Default"),
                     trailing: Radio<ThemeMode>(
                       value: ThemeMode.system,
-                      groupValue: _themeNotifier.value,
-                      onChanged: (val) => _themeNotifier.value = val!,
+                      groupValue: currentThemeMode,
+                      onChanged: (val) => ref.read(themeModeProvider.notifier).state = val!,
                     ),
                   ),
                 ],

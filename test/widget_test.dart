@@ -1,30 +1,42 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:traxer/main.dart';
+import 'package:traxer/app_router.dart';
+import 'package:traxer/providers/app_providers.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('go_router constants use expected paths and names', () {
+    expect(AppRoutes.homePath, '/');
+    expect(AppRoutes.settingsPath, '/settings');
+    expect(AppRoutes.homeName, 'home');
+    expect(AppRoutes.settingsName, 'settings');
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  test('router has at least home and settings routes', () {
+    expect(appRouter.configuration.routes.length, greaterThanOrEqualTo(2));
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  test('theme mode provider updates shared state', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(container.read(themeModeProvider), ThemeMode.system);
+    container.read(themeModeProvider.notifier).state = ThemeMode.dark;
+    expect(container.read(themeModeProvider), ThemeMode.dark);
+  });
+
+  test('view state providers update without setState', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(navBarVisibleProvider), isTrue);
+    expect(container.read(monthlySpendingViewProvider), isTrue);
+
+    container.read(navBarVisibleProvider.notifier).state = false;
+    container.read(monthlySpendingViewProvider.notifier).state = false;
+
+    expect(container.read(navBarVisibleProvider), isFalse);
+    expect(container.read(monthlySpendingViewProvider), isFalse);
   });
 }

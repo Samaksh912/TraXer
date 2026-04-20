@@ -4,11 +4,13 @@ import 'dart:ui';
 class ExpandableGlassFab extends StatefulWidget {
   final VoidCallback onAddTap;
   final Function(String) onSearchChanged;
+  final VoidCallback onVoiceTap;
 
   const ExpandableGlassFab({
     super.key,
     required this.onAddTap,
     required this.onSearchChanged,
+    required this.onVoiceTap,
   });
 
   @override
@@ -18,7 +20,6 @@ class ExpandableGlassFab extends StatefulWidget {
 class _ExpandableGlassFabState extends State<ExpandableGlassFab>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _expandAnimation;
   bool _isOpen = false;
   bool _isSearchActive = false;
   final TextEditingController _searchController = TextEditingController();
@@ -31,12 +32,7 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _expandAnimation = CurvedAnimation(
-      curve: Curves.fastLinearToSlowEaseIn,
-      reverseCurve: Curves.fastOutSlowIn,
-      parent: _controller,
-    );
-  }
+      }
 
   @override
   void dispose() {
@@ -73,9 +69,9 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFF192540).withOpacity(0.6),
+            color: const Color(0xFF192540).withValues(alpha: 0.95),
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: const Color(0xFF40485D).withOpacity(0.5)),
+            border: Border.all(color: const Color(0xFF40485D).withValues(alpha: 0.8)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -118,10 +114,10 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF192540).withOpacity(0.5),
+                    color: const Color(0xFF192540).withValues(alpha: 0.95),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: const Color(0xFF40485D).withOpacity(0.3),
+                      color: const Color(0xFF40485D).withValues(alpha: 0.8),
                     ),
                   ),
                   child: Row(
@@ -162,7 +158,7 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
         // Fab stack
         if (!_isSearchActive) ...[
           _AnimatedAction(
-            animation: _expandAnimation,
+            animation: _controller,
             index: 4,
             child: _buildAction(
               Icons.history,
@@ -171,16 +167,7 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
             ),
           ),
           _AnimatedAction(
-            animation: _expandAnimation,
-            index: 0,
-            child: _buildAction(
-              Icons.mic,
-              "Voice",
-              () => print("Voice tapped"),
-            ),
-          ),
-          _AnimatedAction(
-            animation: _expandAnimation,
+            animation: _controller,
             index: 3,
             child: _buildAction(
               Icons.bar_chart_rounded,
@@ -189,7 +176,16 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
             ),
           ),
           _AnimatedAction(
-            animation: _expandAnimation,
+            animation: _controller,
+            index: 2,
+            child: _buildAction(
+              Icons.add,
+              "New Transaction",
+              () => widget.onAddTap(),
+            ),
+          ),
+          _AnimatedAction(
+            animation: _controller,
             index: 1,
             child: _buildAction(Icons.search, "Search", () {
               setState(() {
@@ -198,9 +194,13 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
             }),
           ),
           _AnimatedAction(
-            animation: _expandAnimation,
-            index: 2,
-            child: _buildAction(Icons.add, "New Transaction", widget.onAddTap),
+            animation: _controller,
+            index: 0,
+            child: _buildAction(
+              Icons.mic,
+              "Voice",
+              () => widget.onVoiceTap(),
+            ),
           ),
         ],
 
@@ -229,20 +229,20 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
                             end: Alignment.bottomRight,
                           ),
                     color: _isOpen
-                        ? const Color(0xFF192540).withOpacity(0.8)
+                        ? const Color(0xFF192540).withValues(alpha: 0.95)
                         : null,
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: _isOpen
-                          ? const Color(0xFF40485D).withOpacity(0.5)
-                          : const Color(0xFF1DFBA5).withOpacity(0.5),
+                          ? const Color(0xFF40485D).withValues(alpha: 0.8)
+                          : const Color(0xFF1DFBA5).withValues(alpha: 0.8),
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: _isOpen
                             ? Colors.transparent
-                            : const Color(0xFF9EFFC8).withOpacity(0.4),
+                            : const Color(0xFF9EFFC8).withValues(alpha: 0.6),
                         blurRadius: _isOpen ? 0 : 25,
                         spreadRadius: _isOpen ? 0 : 5,
                       ),
@@ -283,32 +283,44 @@ class _AnimatedAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final delay = index * 0.08;
+    // 5 items, stagger them individually
+    final delay = index * 0.1;
     final begin = delay;
     final end = (delay + 0.6).clamp(0.0, 1.0);
 
-    final itemAnimation = CurvedAnimation(
+    // Bouncy pop curve for the individual item
+    final popAnimation = CurvedAnimation(
       parent: animation,
-      curve: Interval(begin, end, curve: Curves.fastLinearToSlowEaseIn),
+      curve: Interval(begin, end, curve: Curves.easeOutBack),
+    );
+    
+    // Smooth fade without the bounce
+    final smoothFadeAnimation = CurvedAnimation(
+      parent: animation,
+      curve: Interval(begin, end, curve: Curves.easeOut),
     );
 
     return AnimatedBuilder(
-      animation: itemAnimation,
+      animation: animation,
       builder: (context, childWidget) {
-        if (itemAnimation.value == 0.0) return const SizedBox.shrink();
+        final scale = popAnimation.value;
+        final opacity = smoothFadeAnimation.value;
 
+        if (animation.value == 0.0) return const SizedBox.shrink();
+        
         return Transform.translate(
-          offset: Offset(0, 30 * (1 - itemAnimation.value)),
-          child: Transform.scale(
-            scale: itemAnimation.value,
-            child: Opacity(
-              opacity: itemAnimation.value.clamp(0.0, 1.0),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: childWidget,
-              ),
-            ),
-          ),
+           offset: Offset(0, 30 * (1 - popAnimation.value)),
+           child: Transform.scale(
+             scale: scale.clamp(0.0, 1.3),
+             alignment: Alignment.centerRight,
+             child: Opacity(
+               opacity: opacity.clamp(0.0, 1.0),
+               child: Padding(
+                 padding: const EdgeInsets.only(bottom: 12),
+                 child: childWidget,
+               ),
+             ),
+           ),
         );
       },
       child: child,

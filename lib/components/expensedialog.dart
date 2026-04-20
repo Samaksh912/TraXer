@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../models/isarexpense.dart'; // Ensure this points to your single model file
+import '../models/isar_expense.dart';
 
 class AddExpenseDialog extends StatefulWidget {
-  final Function(IsarExpense) onAddExpense;
+  final Future<void> Function(IsarExpense) onAddExpense;
+  final IsarExpense? draft; // Optional prefill from voice
 
-  const AddExpenseDialog({super.key, required this.onAddExpense});
+  const AddExpenseDialog({
+    super.key,
+    required this.onAddExpense,
+    this.draft,
+  });
 
   @override
   State<AddExpenseDialog> createState() => _AddExpenseDialogState();
@@ -22,6 +28,26 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   TransactionType _selectedType = TransactionType.expense;
   String? _selectedCategory;
   bool _isOtherSelected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Prefill from voice draft if provided
+    final draft = widget.draft;
+    if (draft != null) {
+      _titleController.text = draft.title;
+      _amountController.text = draft.amount > 0 ? draft.amount.toStringAsFixed(0) : '';
+      _selectedType = draft.type;
+      _selectedDate = draft.createdAt;
+      // Only set category if it matches a known category in the list
+      final knownExpense = ['Food', 'Travel', 'Shopping', 'Housing', 'Utilities', 'Health', 'Entertainment', 'Others'];
+      final knownIncome = ['Salary', 'Freelance', 'Business', 'Investments', 'Gift', 'Rental', 'Refund', 'Others'];
+      final known = draft.type == TransactionType.expense ? knownExpense : knownIncome;
+      if (known.contains(draft.category)) {
+        _selectedCategory = draft.category;
+      }
+    }
+  }
 
   // Configuration Lists
   final List<String> _expenseCategories = [
@@ -41,7 +67,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       ? _expenseCategories
       : _incomeCategories;
 
-  void _submitData() {
+  Future<void> _submitData() async {
     final enteredTitle = _titleController.text;
     final enteredAmount = double.tryParse(_amountController.text);
 
@@ -64,13 +90,12 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     final newExpense = IsarExpense()
       ..title = enteredTitle
       ..amount = enteredAmount
-      ..date = _selectedDate
+      ..createdAt = _selectedDate
       ..category = finalCategory
-      ..createdDate = DateTime.now()
       ..type = _selectedType;
 
-    widget.onAddExpense(newExpense);
-    Navigator.of(context).pop();
+    await widget.onAddExpense(newExpense);
+    context.pop();
   }
 
   void _presentDatePicker() {
@@ -252,7 +277,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     style: TextButton.styleFrom(
                       foregroundColor: isDark ? Colors.white60 : Colors.black54,
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
