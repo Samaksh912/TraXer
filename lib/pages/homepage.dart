@@ -25,7 +25,11 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   Future<void> _addNewExpense(IsarExpense newExpense) async {
-    await ref.read(expenseRepositoryProvider).addExpense(newExpense);
+    final repository = ref.read(expenseRepositoryProvider);
+    final syncService = ref.read(syncServiceProvider);
+
+    await repository.addExpense(newExpense);
+    await syncService.syncPendingItems();
   }
 
   void _showAddDialog() {
@@ -122,7 +126,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   physics: const BouncingScrollPhysics(),
                   children: [
                     const SizedBox(height: 10),
-                    HomeHeader(onNotificationsTap: _openSettings),
+                    HomeHeader(onSettingsTap: _openSettings),
                     const SizedBox(height: 20),
                     GlassPanel(child: ExpenseCard(transactions: recentTransactions)),
                     const SizedBox(height: 12),

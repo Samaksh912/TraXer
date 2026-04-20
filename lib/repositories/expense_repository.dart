@@ -145,6 +145,11 @@ class ExpenseRepository {
     return state?.hasCompletedInitialSync == true && state?.syncedUserId == userId;
   }
 
+  Future<String?> getSyncedUserId() async {
+    final state = await _isar.appSyncStates.get(0);
+    return state?.syncedUserId;
+  }
+
   Future<void> setInitialSyncCompletedForUser(String userId) async {
     await _isar.writeTxn(() async {
       final state = (await _isar.appSyncStates.get(0)) ?? AppSyncState();
@@ -153,6 +158,14 @@ class ExpenseRepository {
         ..hasCompletedInitialSync = true
         ..syncedUserId = userId;
       await _isar.appSyncStates.put(state);
+    });
+  }
+
+  Future<void> clearUserData() async {
+    await _isar.writeTxn(() async {
+      await _isar.isarExpenses.clear();
+      await _isar.syncQueueItems.clear();
+      await _isar.appSyncStates.clear();
     });
   }
 

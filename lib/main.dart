@@ -72,6 +72,10 @@ class _MyAppState extends ConsumerState<MyApp> {
       _bootstrappedUserId = null;
       await _connectivitySyncTrigger?.dispose();
       _connectivitySyncTrigger = null;
+      ref.read(profileProvider.notifier).state = const ProfileState(
+        displayName: 'EXPNSE',
+        avatarIcon: Icons.person,
+      );
       return;
     }
 
@@ -83,6 +87,19 @@ class _MyAppState extends ConsumerState<MyApp> {
     try {
       final repository = ref.read(expenseRepositoryProvider);
       final syncService = ref.read(syncServiceProvider);
+      final syncedUserId = await repository.getSyncedUserId();
+
+      if (syncedUserId != null && syncedUserId != user.uid) {
+        await repository.clearUserData();
+      }
+
+      ref.read(profileProvider.notifier).state = const ProfileState(
+        displayName: 'EXPNSE',
+        avatarIcon: Icons.person,
+      );
+
+      await syncService.ensureUserDocument();
+
       final hasCompletedInitialSync =
           await repository.hasCompletedInitialSyncForUser(user.uid);
 
@@ -105,12 +122,13 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   Widget build(BuildContext context) {
     final mode = ref.watch(themeModeProvider);
+    final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
       title: 'Voice Expense Tracker',
       debugShowCheckedModeBanner: false,
       themeMode: mode,
-      routerConfig: appRouter,
+      routerConfig: router,
       // LIGHT THEME
       theme: ThemeData(
         useMaterial3: true,

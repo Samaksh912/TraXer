@@ -5,14 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../app_router.dart';
 import '../../providers/auth_provider.dart';
 
-class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+class SignupPage extends ConsumerStatefulWidget {
+  const SignupPage({super.key});
 
   @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
+  ConsumerState<SignupPage> createState() => _SignupPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
+class _SignupPageState extends ConsumerState<SignupPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -26,13 +26,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleSignup() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
     try {
       final authService = ref.read(authServiceProvider);
-      await authService.signInWithEmail(
+      await authService.signUpWithEmail(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
@@ -54,7 +54,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
 
-  Future<void> _handleGoogleLogin() async {
+  Future<void> _handleGoogleSignup() async {
     setState(() => _isLoading = true);
     try {
       final authService = ref.read(authServiceProvider);
@@ -102,26 +102,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           
           // Abstract floating orbs
           Positioned(
-            top: -100,
-            left: -100,
+            top: -50,
+            right: -100,
             child: Container(
               width: 300,
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isDark ? Colors.tealAccent.withOpacity(0.1) : Colors.green.withOpacity(0.2),
+                color: isDark ? Colors.blueAccent.withOpacity(0.1) : Colors.lightGreen.withOpacity(0.2),
               ),
             ),
           ),
           Positioned(
             bottom: -50,
-            right: -100,
+            left: -100,
             child: Container(
               width: 250,
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isDark ? Colors.blueAccent.withOpacity(0.1) : Colors.lightGreen.withOpacity(0.2),
+                color: isDark ? Colors.tealAccent.withOpacity(0.1) : Colors.green.withOpacity(0.2),
               ),
             ),
           ),
@@ -157,13 +157,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.account_balance_wallet,
+                            Icons.monetization_on,
                             size: 80,
                             color: isDark ? Colors.tealAccent : Colors.teal.shade700,
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            "Welcome Back",
+                            "Create Account",
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               fontSize: 32,
@@ -171,11 +171,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Sign in to track your expenses",
+                            "Start your journey to better finances",
                             style: theme.textTheme.bodyLarge?.copyWith(
                               fontSize: 18,
                               color: isDark ? Colors.white70 : Colors.black54,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 40),
                           
@@ -240,12 +241,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           const SizedBox(height: 40),
 
-                          // Login Action
+                          // Sign up Action
                           SizedBox(
                             width: double.infinity,
                             height: 64,
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleLogin,
+                              onPressed: _isLoading ? null : _handleSignup,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: isDark ? Colors.tealAccent.shade400 : Colors.teal.shade600,
                                 foregroundColor: isDark ? Colors.black : Colors.white,
@@ -257,7 +258,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               child: _isLoading
                                   ? const CircularProgressIndicator(color: Colors.white)
                                   : const Text(
-                                      "Login",
+                                      "Sign Up",
                                       style: TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.bold,
@@ -284,10 +285,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             width: double.infinity,
                             height: 64,
                             child: OutlinedButton.icon(
-                              onPressed: _isLoading ? null : _handleGoogleLogin,
+                              onPressed: _isLoading ? null : _handleGoogleSignup,
                               icon: const Icon(Icons.g_mobiledata, size: 40),
                               label: const Text(
-                                "Continue with Google",
+                                "Sign up with Google",
                                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                               style: OutlinedButton.styleFrom(
@@ -300,18 +301,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           const SizedBox(height: 32),
 
-                          // Sign up link
+                          // Login link
                           TextButton(
                             onPressed: () {
-                              context.pushNamed(AppRoutes.signupName);
+                              context.pop(); // Go back to login screen
                             },
                             child: Text.rich(
                               TextSpan(
-                                text: "Don't have an account? ",
+                                text: "Already have an account? ",
                                 style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.black87),
                                 children: [
                                   TextSpan(
-                                    text: "Sign Up",
+                                    text: "Log In",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: isDark ? Colors.tealAccent : Colors.teal.shade700,

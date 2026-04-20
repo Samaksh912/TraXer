@@ -63,6 +63,30 @@ class SyncService {
     }
   }
 
+  Future<void> ensureUserDocument() async {
+    final user = auth.currentUser;
+    if (user == null) {
+      debugPrint('Skipping user document upsert: no authenticated user.');
+      return;
+    }
+
+    final userDocRef = firestore.collection('users').doc(user.uid);
+    final providers = user.providerData
+        .map((entry) => entry.providerId)
+        .where((providerId) => providerId.isNotEmpty)
+        .toSet()
+        .toList();
+
+    await userDocRef.set({
+      'uid': user.uid,
+      'email': user.email,
+      'displayName': user.displayName,
+      'photoURL': user.photoURL,
+      'providerIds': providers,
+      'lastLoginAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
   Future<void> initialSync() async {
     final user = auth.currentUser;
     if (user == null) {
