@@ -1,26 +1,29 @@
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import 'app_router.dart';
-import 'firebase_options.dart';
+import 'core/config/supabase_config.dart';
 import 'models/app_sync_state.dart';
+import 'models/auth_user.dart';
 import 'models/isar_expense.dart';
 import 'models/sync_queue_item.dart';
 import 'providers/app_providers.dart';
+import 'providers/auth_provider.dart';
 import 'providers/expense_providers.dart';
 import 'services/connectivity_sync_trigger.dart';
 import 'services/isar_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  SupabaseConfig.validate();
+  await sb.Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.anonKey,
   );
 
   // 1. Get the document directory
@@ -46,7 +49,7 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
-  StreamSubscription<User?>? _authSubscription;
+  StreamSubscription<AuthUser?>? _authSubscription;
   ConnectivitySyncTrigger? _connectivitySyncTrigger;
   String? _bootstrappedUserId;
   bool _isBootstrappingUser = false;
@@ -54,10 +57,11 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
-    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+    final authService = ref.read(authServiceProvider);
+    _authSubscription = authService.authStateChanges.listen((user) {
       unawaited(_handleAuthState(user));
     });
-    unawaited(_handleAuthState(FirebaseAuth.instance.currentUser));
+    unawaited(_handleAuthState(authService.currentUser));
   }
 
   @override
@@ -67,7 +71,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     super.dispose();
   }
 
-  Future<void> _handleAuthState(User? user) async {
+  Future<void> _handleAuthState(AuthUser? user) async {
     if (user == null) {
       _bootstrappedUserId = null;
       await _connectivitySyncTrigger?.dispose();
@@ -79,7 +83,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       return;
     }
 
-    if (_bootstrappedUserId == user.uid || _isBootstrappingUser) {
+    if (_bootstrappedUserId == user.id || _isBootstrappingUser) {
       return;
     }
 
@@ -89,7 +93,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       final syncService = ref.read(syncServiceProvider);
       final syncedUserId = await repository.getSyncedUserId();
 
-      if (syncedUserId != null && syncedUserId != user.uid) {
+      if (syncedUserId != null && syncedUserId != user.id) {
         await repository.clearUserData();
       }
 
@@ -101,19 +105,19 @@ class _MyAppState extends ConsumerState<MyApp> {
       await syncService.ensureUserDocument();
 
       final hasCompletedInitialSync =
-          await repository.hasCompletedInitialSyncForUser(user.uid);
+          await repository.hasCompletedInitialSyncForUser(user.id);
 
       if (!hasCompletedInitialSync) {
         await syncService.initialSync();
-        await repository.setInitialSyncCompletedForUser(user.uid);
+        await repository.setInitialSyncCompletedForUser(user.id);
       }
 
       await _connectivitySyncTrigger?.dispose();
       _connectivitySyncTrigger = ConnectivitySyncTrigger(syncService: syncService)
         ..init();
-      _bootstrappedUserId = user.uid;
+      _bootstrappedUserId = user.id;
     } catch (error, stackTrace) {
-      debugPrint('Failed to bootstrap sync for ${user.uid}: $error\n$stackTrace');
+      debugPrint('Failed to bootstrap sync for ${user.id}: $error\n$stackTrace');
     } finally {
       _isBootstrappingUser = false;
     }

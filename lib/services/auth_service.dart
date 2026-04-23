@@ -1,59 +1,55 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as sb;
+
+import '../models/auth_user.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  AuthService({sb.SupabaseClient? supabaseClient})
+    : _supabase = supabaseClient ?? sb.Supabase.instance.client;
+
+  final sb.SupabaseClient _supabase;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _googleSignInInitialized = false;
 
   // Stream of auth state changes
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Stream<AuthUser?> get authStateChanges =>
+      _supabase.auth.onAuthStateChange.map<AuthUser?>(
+        (state) => _mapSupabaseUser(state.session?.user),
+      );
 
   // Current user
-  User? get currentUser => _auth.currentUser;
+  AuthUser? get currentUser => _mapSupabaseUser(_supabase.auth.currentUser);
 
   // Sign in with Email and Password
-  Future<UserCredential?> signInWithEmail(String email, String password) async {
-    try {
-      return await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-    } catch (e) {
-      rethrow;
-    }
+  Future<void> signInWithEmail(String email, String password) async {
+    await _supabase.auth.signInWithPassword(email: email, password: password);
   }
 
   // Sign up with Email and Password
-  Future<UserCredential?> signUpWithEmail(String email, String password) async {
-    try {
-      return await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-    } catch (e) {
-      rethrow;
-    }
+  Future<void> signUpWithEmail(String email, String password) async {
+    await _supabase.auth.signUp(email: email, password: password);
   }
 
   // Sign in with Google
-  Future<UserCredential?> signInWithGoogle() async {
+  Future<void> signInWithGoogle() async {
     try {
       await _ensureGoogleSignInInitialized();
       final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
-      );
+      final idToken = googleAuth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw StateError('Google Sign-In did not return an idToken.');
+      }
 
-      return await _auth.signInWithCredential(credential);
+      await _supabase.auth.signInWithIdToken(
+        provider: sb.OAuthProvider.google,
+        idToken: idToken,
+      );
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
-        return null;
+        return;
       }
-      rethrow;
-    } catch (e) {
       rethrow;
     }
   }
@@ -61,7 +57,7 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     await Future.wait([
-      _auth.signOut(),
+      _supabase.auth.signOut(),
       _googleSignIn.signOut(),
     ]);
   }
@@ -73,5 +69,30 @@ class AuthService {
 
     await _googleSignIn.initialize();
     _googleSignInInitialized = true;
+  }
+
+  AuthUser? _mapSupabaseUser(sb.User? user) {
+    if (user == null) {
+      return null;
+    }
+
+    final metadata = user.userMetadata ?? const <String, dynamic>{};
+    final appMetadata = user.appMetadata;
+    final providers = appMetadata['providers'] as List<dynamic>? ?? const <dynamic>[];
+
+    return AuthUser(
+      id: user.id,
+      email: user.email,
+      displayName:
+          (metadata['full_name'] as String?) ??
+          (metadata['name'] as String?) ??
+          (metadata['display_name'] as String?),
+      photoUrl: metadata['avatar_url'] as String?,
+      providerIds: providers
+          .whereType<String>()
+          .where((provider) => provider.isNotEmpty)
+          .toSet()
+          .toList(),
+    );
   }
 }

@@ -1,11 +1,12 @@
 # TraXer 💰
 
-A seamless, intelligent expense tracker built with Flutter. TraXer combines the speed of local database storage with a polished, fluid UI to make financial tracking effortless and private.
+A seamless, intelligent expense tracker built with Flutter. TraXer combines local-first performance with Supabase cloud sync to make financial tracking effortless and private.
 
 ![TraXer Banner](https://via.placeholder.com/1200x500.png?text=TraXer+App+Preview)
 ## ✨ Features
 
 * **⚡ Zero-Lag Performance:** Built on **Isar Database**, offering instant read/write operations and full offline capability.
+* **☁️ Secure Cloud Sync:** Powered by **Supabase Auth + Postgres + RLS**, with per-user data isolation.
 * **🎨 Dynamic Gradient UI:** * Beautiful, glassmorphic dialogs for adding Income/Expenses.
     * Context-aware animations (Red for Expense, Green for Income).
     * Smooth "Sliding Bubble" tabs for transaction switching.
@@ -17,7 +18,8 @@ A seamless, intelligent expense tracker built with Flutter. TraXer combines the 
 ## 🛠️ Tech Stack
 
 * **Framework:** [Flutter](https://flutter.dev/) (Dart)
-* **Database:** [Isar](https://isar.dev/) (NoSQL, ACID compliant, highly optimized for mobile)
+* **Local Database:** [Isar](https://isar.dev/) (NoSQL, ACID compliant, highly optimized for mobile)
+* **Cloud Backend:** [Supabase](https://supabase.com/) (Auth + Postgres + Row Level Security)
 * **State Management:** `setState` & `ValueNotifier` (Clean architecture)
 * **UI Components:** Custom animated widgets, `GoogleFonts`, `Intl`.
 
@@ -46,13 +48,18 @@ A seamless, intelligent expense tracker built with Flutter. TraXer combines the 
     flutter pub get
     ```
 
-3.  **Generate Database Code:**
+3.  **Generate Isar Code:**
     This project uses Isar code generation. Run this command to generate the database schema:
     ```bash
     flutter pub run build_runner build --delete-conflicting-outputs
     ```
 
-4.  **Run the App:**
+4. **Provision Supabase schema:**
+   Apply the SQL in `supabase/migrations/20260423_001_initial_traxer_schema.sql` to your Supabase project (SQL Editor or CLI).
+
+5. **Run the app with Supabase environment:**
     ```bash
-    flutter run
+    flutter run \
+      --dart-define=SUPABASE_URL=YOUR_SUPABASE_URL \
+      --dart-define=SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
     ```

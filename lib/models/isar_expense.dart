@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import 'package:isar/isar.dart';
 
 part 'isar_expense.g.dart';
@@ -33,21 +32,22 @@ class IsarExpense {
   @Index()
   bool isDeleted = false;
 
-  Map<String, dynamic> toFirestoreMap() {
+  Map<String, dynamic> toSupabaseMap({required String userId}) {
     return {
+      'user_id': userId,
       'uuid': uuid,
       'title': title,
       'amount': amount,
       'category': category,
       'type': type.name,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'updatedAt': Timestamp.fromDate(updatedAt),
-      'isSynced': isSynced,
-      'isDeleted': isDeleted,
+      'created_at': createdAt.toUtc().toIso8601String(),
+      'updated_at': updatedAt.toUtc().toIso8601String(),
+      'is_synced': isSynced,
+      'is_deleted': isDeleted,
     };
   }
 
-  factory IsarExpense.fromFirestoreMap(
+  factory IsarExpense.fromSupabaseMap(
     Map<String, dynamic> map, {
     String? fallbackUuid,
   }) {
@@ -57,13 +57,13 @@ class IsarExpense {
       ..amount = _readDouble(map['amount'])
       ..category = (map['category'] as String?) ?? ''
       ..type = _readTransactionType(map['type'])
-      ..createdAt = _readDateTime(map['createdAt']) ?? DateTime.now()
+      ..createdAt = _readDateTime(map['created_at']) ?? DateTime.now()
       ..updatedAt =
-          _readDateTime(map['updatedAt']) ??
-          _readDateTime(map['createdAt']) ??
+          _readDateTime(map['updated_at']) ??
+          _readDateTime(map['created_at']) ??
           DateTime.now()
-      ..isSynced = (map['isSynced'] as bool?) ?? true
-      ..isDeleted = (map['isDeleted'] as bool?) ?? false;
+      ..isSynced = (map['is_synced'] as bool?) ?? true
+      ..isDeleted = (map['is_deleted'] as bool?) ?? false;
 
     return expense;
   }
@@ -94,9 +94,6 @@ class IsarExpense {
   }
 
   static DateTime? _readDateTime(Object? value) {
-    if (value is Timestamp) {
-      return value.toDate();
-    }
 
     if (value is DateTime) {
       return value;

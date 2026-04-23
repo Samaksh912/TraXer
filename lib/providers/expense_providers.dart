@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 
@@ -16,7 +15,6 @@ final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
 final syncServiceProvider = Provider<SyncService>((ref) {
   return SyncService(
     repository: ref.watch(expenseRepositoryProvider),
-    firestore: FirebaseFirestore.instance,
   );
 });
 

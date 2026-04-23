@@ -14,7 +14,10 @@ void main() {
   });
 
   test('router has at least home and settings routes', () {
-    expect(appRouter.configuration.routes.length, greaterThanOrEqualTo(2));
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(routerProvider).configuration.routes.length, greaterThanOrEqualTo(2));
   });
 
   test('theme mode provider updates shared state', () {

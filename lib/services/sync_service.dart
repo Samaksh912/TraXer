@@ -1,8 +1,7 @@
 import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../models/isar_expense.dart';
 import '../models/sync_queue_item.dart';
@@ -11,13 +10,11 @@ import '../repositories/expense_repository.dart';
 class SyncService {
   SyncService({
     required this.repository,
-    required this.firestore,
-    FirebaseAuth? auth,
-  }) : auth = auth ?? FirebaseAuth.instance;
+    sb.SupabaseClient? supabaseClient,
+  }) : supabase = supabaseClient ?? sb.Supabase.instance.client;
 
   final ExpenseRepository repository;
-  final FirebaseFirestore firestore;
-  final FirebaseAuth auth;
+  final sb.SupabaseClient supabase;
 
   bool _isSyncing = false;
 
@@ -26,7 +23,7 @@ class SyncService {
       return;
     }
 
-    final user = auth.currentUser;
+    final user = supabase.auth.currentUser;
     if (user == null) {
       debugPrint('Skipping sync: no authenticated user.');
       return;
@@ -64,48 +61,44 @@ class SyncService {
   }
 
   Future<void> ensureUserDocument() async {
-    final user = auth.currentUser;
+    final user = supabase.auth.currentUser;
     if (user == null) {
       debugPrint('Skipping user document upsert: no authenticated user.');
       return;
     }
 
-    final userDocRef = firestore.collection('users').doc(user.uid);
-    final providers = user.providerData
-        .map((entry) => entry.providerId)
-        .where((providerId) => providerId.isNotEmpty)
-        .toSet()
-        .toList();
+    final providers =
+        (user.appMetadata['providers'] as List<dynamic>? ?? const <dynamic>[])
+            .whereType<String>()
+            .where((providerId) => providerId.isNotEmpty)
+            .toSet()
+            .toList();
 
-    await userDocRef.set({
-      'uid': user.uid,
+    await supabase.from('profiles').upsert({
+      'id': user.id,
       'email': user.email,
-      'displayName': user.displayName,
-      'photoURL': user.photoURL,
-      'providerIds': providers,
-      'lastLoginAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+      'display_name': user.userMetadata?['full_name'] ?? user.userMetadata?['name'],
+      'photo_url': user.userMetadata?['avatar_url'],
+      'provider_ids': providers,
+      'last_login_at': DateTime.now().toUtc().toIso8601String(),
+    }, onConflict: 'id');
   }
 
   Future<void> initialSync() async {
-    final user = auth.currentUser;
+    final user = supabase.auth.currentUser;
     if (user == null) {
       debugPrint('Skipping initial sync: no authenticated user.');
       return;
     }
 
-    final snapshot = await firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('expenses')
-        .where('isDeleted', isEqualTo: false)
-        .get();
+    final response = await supabase
+        .from('expenses')
+        .select()
+        .eq('user_id', user.id)
+        .eq('is_deleted', false);
 
-    final remoteExpenses = snapshot.docs.map((doc) {
-      final expense = IsarExpense.fromFirestoreMap(
-        doc.data(),
-        fallbackUuid: doc.id,
-      );
+    final remoteExpenses = (response as List<dynamic>).map((row) {
+      final expense = IsarExpense.fromSupabaseMap(Map<String, dynamic>.from(row as Map));
 
       expense.isSynced = true;
       return expense;
@@ -115,16 +108,10 @@ class SyncService {
   }
 
   Future<void> _processItem(SyncQueueItem item) async {
-    final user = auth.currentUser;
+    final user = supabase.auth.currentUser;
     if (user == null) {
       throw StateError('Cannot sync without an authenticated user.');
     }
-
-    final docRef = firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('expenses')
-        .doc(item.entityUuid);
 
     switch (item.operation) {
       case ExpenseRepository.upsertOperation:
@@ -133,13 +120,17 @@ class SyncService {
           throw StateError('Missing local expense for ${item.entityUuid}.');
         }
 
-        await docRef.set(
-          expense.toFirestoreMap(),
-          SetOptions(merge: true),
+        await supabase.from('expenses').upsert(
+          expense.toSupabaseMap(userId: user.id),
+          onConflict: 'user_id,uuid',
         );
         return;
       case ExpenseRepository.deleteOperation:
-        await docRef.delete();
+        await supabase
+            .from('expenses')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('uuid', item.entityUuid);
         return;
       default:
         throw UnsupportedError('Unknown sync operation: ${item.operation}');
