@@ -54,12 +54,22 @@ A seamless, intelligent expense tracker built with Flutter. TraXer combines loca
     flutter pub run build_runner build --delete-conflicting-outputs
     ```
 
-4. **Provision Supabase schema:**
+4. **Create your local `.env` file:**
+   Copy the example file and fill in your Supabase values.
+   ```bash
+   cp .env.example .env
+   ```
+
+   Then set:
+   ```env
+   SUPABASE_URL=YOUR_SUPABASE_URL
+   SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+   ```
+
+5. **Provision Supabase schema:**
    Apply the SQL in `supabase/migrations/20260423_001_initial_traxer_schema.sql` to your Supabase project (SQL Editor or CLI).
 
-5. **Run the app with Supabase environment:**
+6. **Run the app:**
     ```bash
-    flutter run \
-      --dart-define=SUPABASE_URL=YOUR_SUPABASE_URL \
-      --dart-define=SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+    flutter run
     ```

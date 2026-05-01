@@ -1,11 +1,25 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class SupabaseConfig {
-  static const String url = String.fromEnvironment('https://wchhltilessnllukhrzu.supabase.co/rest/v1/');
-  static const String anonKey = String.fromEnvironment('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjaGhsdGlsZXNzbmxsdWtocnp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzA4NTksImV4cCI6MjA5MjUwNjg1OX0.');
+  static String get url => dotenv.env['SUPABASE_URL']?.trim() ?? '';
+
+  static String get anonKey => dotenv.env['SUPABASE_ANON_KEY']?.trim() ?? '';
 
   static void validate() {
-	if (url.isEmpty || anonKey.isEmpty) {
+	final missing = <String>[];
+
+	if (url.isEmpty) {
+	  missing.add('SUPABASE_URL');
+	}
+
+	if (anonKey.isEmpty) {
+	  missing.add('SUPABASE_ANON_KEY');
+	}
+
+	if (missing.isNotEmpty) {
 	  throw StateError(
-		'Missing Supabase config. Provide SUPABASE_URL and SUPABASE_ANON_KEY via --dart-define.',
+		'Missing Supabase config: ${missing.join(', ')}. '
+		'Create a root .env file with both variables.',
 	  );
 	}
   }

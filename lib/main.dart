@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -20,25 +21,79 @@ import 'services/isar_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SupabaseConfig.validate();
-  await sb.Supabase.initialize(
-    url: SupabaseConfig.url,
-    anonKey: SupabaseConfig.anonKey,
-  );
+  try {
+    await dotenv.load(fileName: '.env');
+    SupabaseConfig.validate();
+    await sb.Supabase.initialize(
+      url: SupabaseConfig.url,
+      anonKey: SupabaseConfig.anonKey,
+    );
 
-  // 1. Get the document directory
-  final dir = await getApplicationDocumentsDirectory();
+    // 1. Get the document directory
+    final dir = await getApplicationDocumentsDirectory();
 
-  // 2. Open Isar
-  isar = await Isar.open(
-    [
-      IsarExpenseSchema,
-      SyncQueueItemSchema,
-      AppSyncStateSchema,
-    ],
-    directory: dir.path,
-  );
-  runApp(const ProviderScope(child: MyApp()));
+    // 2. Open Isar
+    isar = await Isar.open(
+      [
+        IsarExpenseSchema,
+        SyncQueueItemSchema,
+        AppSyncStateSchema,
+      ],
+      directory: dir.path,
+    );
+    runApp(const ProviderScope(child: MyApp()));
+  } catch (error, stackTrace) {
+    debugPrint('App bootstrap failed: $error\n$stackTrace');
+    runApp(_BootstrapErrorApp(error: error));
+  }
+}
+
+class _BootstrapErrorApp extends StatelessWidget {
+  const _BootstrapErrorApp({required this.error});
+
+  final Object error;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 56,
+                    color: Colors.redAccent,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Startup failed',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'The app could not finish bootstrapping.\n\n$error',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Check your .env file and local storage access, then restart the app.',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends ConsumerStatefulWidget {

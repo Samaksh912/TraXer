@@ -2,7 +2,6 @@
 //todo fix settings page and connect it to db
 //todo fix ui of auth pages
 //todo add adapative ui wherever possible
-//todo add voice to transaction flow integration
 //todo add full text search
 //todo add analytics page
 //todo add history page

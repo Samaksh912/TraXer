@@ -22,7 +22,7 @@
 ## Supabase migration implemented
 
 - Added `supabase_flutter` dependency and removed Firebase dependencies from `pubspec.yaml`.
-- Added startup config via `lib/core/config/supabase_config.dart` using:
+- Added runtime startup config via `.env` and `flutter_dotenv`:
   - `SUPABASE_URL`
   - `SUPABASE_ANON_KEY`
 - Replaced Firebase initialization with `Supabase.initialize()` in `lib/main.dart`.
@@ -50,8 +50,9 @@
 2. Configure Google provider in Supabase dashboard with correct client credentials.
 3. Apply SQL migration from `supabase/migrations/20260423_001_initial_traxer_schema.sql`.
 4. Set app runtime variables:
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
+   - Create a local `.env` file with:
+     - `SUPABASE_URL`
+     - `SUPABASE_ANON_KEY`
 5. Verify auth and sync flow end-to-end:
    - signup/login
    - create/update/delete expense
