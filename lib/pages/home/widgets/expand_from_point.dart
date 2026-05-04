@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class ExpandFromPointRoute extends PageRouteBuilder {
@@ -6,27 +7,43 @@ class ExpandFromPointRoute extends PageRouteBuilder {
 
   ExpandFromPointRoute({required this.page, required this.tapPosition})
       : super(
-    opaque: false, // Allows the background to show through for the blur
-    transitionDuration: const Duration(milliseconds: 500),
-    reverseTransitionDuration: const Duration(milliseconds: 400),
+    opaque: false,
+    // Slightly faster for a snappier, lightweight feel
+    transitionDuration: const Duration(milliseconds: 400),
+    reverseTransitionDuration: const Duration(milliseconds: 300),
     pageBuilder: (context, animation, secondaryAnimation) => page,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      // Convert the screen pixel tap position into a Flutter Alignment (-1.0 to 1.0)
       final screenSize = MediaQuery.of(context).size;
       final alignX = (tapPosition.dx / screenSize.width) * 2 - 1;
       final alignY = (tapPosition.dy / screenSize.height) * 2 - 1;
 
-      return FadeTransition(
-        opacity: animation,
-        child: ScaleTransition(
-          alignment: Alignment(alignX, alignY),
-          scale: CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic,
+      // easeOutExpo gives that premium "fast start, smooth glide to stop" feel
+      final curvedAnimation = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutExpo,
+        reverseCurve: Curves.easeInCubic,
+      );
+
+      return Stack(
+        children: [
+          // 1. The Blur Background: FADES ONLY (This fixes the lag completely)
+          FadeTransition(
+            opacity: curvedAnimation,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: Container(color: const Color(0xFF0D1424).withOpacity(0.6)),
+            ),
           ),
-          child: child,
-        ),
+          // 2. The Foreground Content: SCALES AND FADES
+          FadeTransition(
+            opacity: curvedAnimation,
+            child: ScaleTransition(
+              alignment: Alignment(alignX, alignY),
+              scale: curvedAnimation,
+              child: child,
+            ),
+          ),
+        ],
       );
     },
   );

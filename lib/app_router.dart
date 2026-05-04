@@ -2,19 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'models/isar_expense.dart';
 import 'pages/homepage.dart';
+import 'pages/historypage.dart';
 import 'pages/settings.dart';
 import 'Auth/screens/loginpage.dart';
 import 'Auth/screens/signuppage.dart';
+import 'pages/analyticspage.dart';
 import 'providers/auth_provider.dart';
 
 class AppRoutes {
   static const String homeName = 'home';
+  static const String historyName = 'history';
+  static const String analyticsName = 'analytics';
   static const String settingsName = 'settings';
   static const String loginName = 'login';
   static const String signupName = 'signup';
 
   static const String homePath = '/';
+  static const String analyticsPath = '/analytics';
+  static const String historyPath = '/history';
   static const String settingsPath = '/settings';
   static const String loginPath = '/login';
   static const String signupPath = '/signup';
@@ -48,6 +55,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: AppRoutes.homeName,
         builder: (BuildContext context, GoRouterState state) {
           return const HomePage();
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.historyPath,
+        name: AppRoutes.historyName,
+        builder: (BuildContext context, GoRouterState state) {
+          final transactions = state.extra is List<IsarExpense>
+              ? state.extra as List<IsarExpense>
+              : const <IsarExpense>[];
+          return TransactionHistoryPage(allTransactions: transactions);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.analyticsPath,
+        name: AppRoutes.analyticsName,
+        builder: (BuildContext context, GoRouterState state) {
+          final transactions = state.extra is List<IsarExpense>
+              ? state.extra as List<IsarExpense>
+              : const <IsarExpense>[];
+          return AnalyticsPage(transactions: transactions);
         },
       ),
       GoRoute(

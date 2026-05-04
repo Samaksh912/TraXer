@@ -57,10 +57,25 @@ class _HomePageState extends ConsumerState<HomePage> {
     context.pushNamed(AppRoutes.settingsName);
   }
 
+  void _openHistory(List<IsarExpense> transactions) {
+    context.pushNamed(
+      AppRoutes.historyName,
+      extra: transactions,
+    );
+  }
+
+  void _openAnalytics(List<IsarExpense> transactions) {
+    context.pushNamed(
+      AppRoutes.analyticsName,
+      extra: transactions,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isNavBarVisible = ref.watch(navBarVisibleProvider);
     final recentTransactionsAsync = ref.watch(expensesProvider);
+    final recentTransactions = recentTransactionsAsync.valueOrNull ?? const <IsarExpense>[];
 
     return Scaffold(
       backgroundColor: const Color(0xFF060E20),
@@ -139,6 +154,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       padding: const EdgeInsets.all(0),
                       child: RecentTransactionsCard(
                         transactions: recentTransactions,
+                        onViewAllTap: () => _openHistory(recentTransactions),
                       ),
                     ),
                     const SizedBox(height: 100),
@@ -158,6 +174,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           opacity: isNavBarVisible ? 1 : 0,
           child: ExpandableGlassFab(
             onAddTap: _showAddDialog,
+            onHistoryTap: () => _openHistory(recentTransactions),
+            onAnalyticsTap: () => _openAnalytics(recentTransactions),
             onVoiceTap: _handleVoiceTap,
             onSearchChanged: (query) {
               debugPrint('Searching for: $query');

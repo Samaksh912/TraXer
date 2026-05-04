@@ -101,7 +101,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   void _presentDatePicker() {
     showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _selectedDate,
       firstDate: DateTime(2023),
       lastDate: DateTime.now(),
       builder: (context, child) {

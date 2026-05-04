@@ -7,21 +7,23 @@ class RecentTransactionsCard extends StatelessWidget {
   const RecentTransactionsCard({
     super.key,
     required this.transactions,
+    required this.onViewAllTap,
   });
 
   final List<IsarExpense> transactions;
+  final VoidCallback onViewAllTap;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 8),
+        Padding(
+          padding: const EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 'Recent Transactions',
                 style: TextStyle(
                   fontSize: 16,
@@ -29,13 +31,20 @@ class RecentTransactionsCard extends StatelessWidget {
                   color: Color(0xFFDEE5FF),
                 ),
               ),
-              Text(
-                'VIEW ALL',
-                style: TextStyle(
-                  color: Color(0xFF9EFFC8),
-                  fontSize: 10,
-                  letterSpacing: 1.0,
-                  fontWeight: FontWeight.bold,
+              InkWell(
+                onTap: onViewAllTap,
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  child: Text(
+                    'VIEW ALL',
+                    style: TextStyle(
+                      color: Color(0xFF9EFFC8),
+                      fontSize: 10,
+                      letterSpacing: 1.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -59,4 +68,3 @@ class RecentTransactionsCard extends StatelessWidget {
     );
   }
 }
-

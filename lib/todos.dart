@@ -9,3 +9,5 @@
 //todo add notifications
 //todo implement logo
 //todo check viability for production
+//todo add a reminders page
+//todo frequently used category in others

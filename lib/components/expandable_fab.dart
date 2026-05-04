@@ -3,12 +3,16 @@ import 'dart:ui';
 
 class ExpandableGlassFab extends StatefulWidget {
   final VoidCallback onAddTap;
+  final VoidCallback onHistoryTap;
+  final VoidCallback onAnalyticsTap;
   final Function(String) onSearchChanged;
   final VoidCallback onVoiceTap;
 
   const ExpandableGlassFab({
     super.key,
     required this.onAddTap,
+    required this.onHistoryTap,
+    required this.onAnalyticsTap,
     required this.onSearchChanged,
     required this.onVoiceTap,
   });
@@ -163,18 +167,18 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
             child: _buildAction(
               Icons.history,
               "History",
-              () => print("History tapped"),
+              () => widget.onHistoryTap(),
             ),
           ),
-          _AnimatedAction(
-            animation: _controller,
-            index: 3,
-            child: _buildAction(
-              Icons.bar_chart_rounded,
-              "Analytics",
-              () => print("Analytics tapped"),
+            _AnimatedAction(
+              animation: _controller,
+              index: 3,
+              child: _buildAction(
+                Icons.bar_chart_rounded,
+                "Analytics",
+                () => widget.onAnalyticsTap(),
+              ),
             ),
-          ),
           _AnimatedAction(
             animation: _controller,
             index: 2,

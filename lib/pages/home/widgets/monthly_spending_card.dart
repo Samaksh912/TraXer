@@ -11,17 +11,6 @@ class MonthlySpendingCard extends ConsumerStatefulWidget {
 
   const MonthlySpendingCard({super.key, required this.transactions});
 
-  // Pre-defined color palette for categories
-  static const List<Color> _palette = [
-    Color(0xFF1DFBA5), // Mint Green
-    Color(0xFF874CFF), // Purple
-    Color(0xFFFB1D55), // Red
-    Color(0xFF5B8EFF), // Blue
-    Color(0xFFFF9E9E), // Light Pink
-    Color(0xFFFACC15), // Yellow
-    Color(0xFF2DD4BF), // Teal
-  ];
-
   @override
   ConsumerState<MonthlySpendingCard> createState() => _MonthlySpendingCardState();
 }
@@ -30,27 +19,68 @@ class _MonthlySpendingCardState extends ConsumerState<MonthlySpendingCard> {
   int _touchedIndex = -1;
   Offset? _touchOffset; // Tracks exactly where the user tapped
 
-  Map<String, Color> _assignColors(List<IsarExpense> transactions) {
+  int _stableCategoryHash(String category) {
+    const int fnvOffsetBasis = 2166136261;
+    const int fnvPrime = 16777619;
+
+    var hash = fnvOffsetBasis;
+    for (final codeUnit in category.codeUnits) {
+      hash ^= codeUnit;
+      hash = (hash * fnvPrime) & 0xFFFFFFFF;
+    }
+    return hash;
+  }
+
+  Color _colorForCategory(String category, ColorScheme scheme, Set<int> usedColorValues) {
+    final hash = _stableCategoryHash(category);
+    final isDarkTheme = scheme.brightness == Brightness.dark;
+    final primaryHue = HSLColor.fromColor(scheme.primary).hue;
+
+    final baseHue = (primaryHue + (hash % 240) - 120).toDouble() % 360;
+    final baseSaturation = isDarkTheme ? 0.42 : 0.36;
+    final baseLightness = isDarkTheme ? 0.60 : 0.52;
+
+    final saturation = (baseSaturation + ((hash >> 8) & 0x07) * 0.018).clamp(0.0, 1.0);
+    final lightness = (baseLightness + ((hash >> 11) & 0x07) * 0.012).clamp(0.0, 1.0);
+
+    Color candidate = HSLColor.fromAHSL(1.0, baseHue, saturation, lightness).toColor();
+
+    var attempt = 0;
+    while (usedColorValues.contains(candidate.value) && attempt < 8) {
+      final hueShift = 137.508 * (attempt + 1);
+      final adjustedHue = (baseHue + hueShift) % 360;
+      final adjustedSaturation = (saturation - (attempt * 0.02)).clamp(0.0, 1.0);
+      final adjustedLightness = (attempt.isEven ? lightness + 0.02 : lightness - 0.02).clamp(0.0, 1.0);
+      candidate = HSLColor.fromAHSL(1.0, adjustedHue, adjustedSaturation, adjustedLightness).toColor();
+      attempt++;
+    }
+
+    usedColorValues.add(candidate.value);
+    return candidate;
+  }
+
+  Map<String, Color> _assignColors(BuildContext context, List<IsarExpense> transactions) {
     final categoryColors = <String, Color>{};
-    int colorIndex = 0;
-    for (var tx in transactions) {
-      if (tx.type == TransactionType.expense && !categoryColors.containsKey(tx.category)) {
-        categoryColors[tx.category] = MonthlySpendingCard._palette[colorIndex % MonthlySpendingCard._palette.length];
-        colorIndex++;
-      }
+    final usedColorValues = <int>{};
+    final scheme = Theme.of(context).colorScheme;
+
+    final expenseCategories = transactions
+        .where((tx) => tx.type == TransactionType.expense)
+        .map((tx) => tx.category)
+        .toSet()
+        .toList()
+      ..sort();
+
+    for (final category in expenseCategories) {
+      categoryColors[category] = _colorForCategory(category, scheme, usedColorValues);
     }
-    var sortedKeys = categoryColors.keys.toList()..sort();
-    var newMap = <String, Color>{};
-    for (var k in sortedKeys) {
-      newMap[k] = categoryColors[k]!;
-    }
-    return newMap;
+    return categoryColors;
   }
 
   @override
   Widget build(BuildContext context) {
     final isDailyView = ref.watch(monthlySpendingViewProvider);
-    final categoryColors = _assignColors(widget.transactions);
+    final categoryColors = _assignColors(context, widget.transactions);
 
     final now = DateTime.now();
     final expenses = widget.transactions.where((t) => t.type == TransactionType.expense).toList();
