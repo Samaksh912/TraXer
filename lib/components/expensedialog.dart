@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../models/isar_expense.dart';
@@ -60,8 +61,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   // Getters for Dynamic Theme
   Color get _activeColor => _selectedType == TransactionType.expense
-      ? Colors.redAccent
-      : Colors.green;
+      ? context.appColors.expense
+      : context.appColors.income;
 
   List<String> get _currentCategories => _selectedType == TransactionType.expense
       ? _expenseCategories
@@ -133,16 +134,16 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: isDark
-            ? [const Color(0xFF382222), const Color(0xFF1E1E1E)] // Dark: Deep Burgundy -> Dark Grey
-            : [const Color(0xFFFFF6F6), const Color(0xFFFFFFFF)], // Light: Soft Rose -> White
+            ? [Color(0xFF382222), context.appColors.surface] // Dark: Deep Burgundy -> Dark Grey
+            : [context.appColors.background, Color(0xFFFFFFFF)], // Light: Soft Rose -> White
       );
     } else {
       dynamicGradient = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: isDark
-            ? [const Color(0xFF1A3325), const Color(0xFF1E1E1E)] // Dark: Deep Forest -> Dark Grey
-            : [const Color(0xFFF0FDF4), const Color(0xFFFFFFFF)], // Light: Soft Mint -> White
+            ? [Color(0xFF1A3325), context.appColors.surface] // Dark: Deep Forest -> Dark Grey
+            : [context.appColors.background, Color(0xFFFFFFFF)], // Light: Soft Mint -> White
       );
     }
 
@@ -236,7 +237,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               // Category Dropdown
               DropdownButtonFormField<String>(
                 value: _selectedCategory,
-                dropdownColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+                dropdownColor: isDark ? context.appColors.surface : Colors.white,
                 style: TextStyle(color: textColor, fontSize: 16),
                 decoration: _inputDecoration("Category", isDark, textColor),
                 icon: Icon(Icons.keyboard_arrow_down_rounded, color: _activeColor),

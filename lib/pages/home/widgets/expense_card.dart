@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/isar_expense.dart';
 
@@ -41,10 +42,10 @@ class ExpenseCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "TODAY'S EXPENDITURE",
           style: TextStyle(
-            color: Color(0xFFA3AAC4),
+            color: context.appColors.primaryText.withOpacity(0.7),
             fontSize: 10,
             letterSpacing: 1.5,
             fontWeight: FontWeight.w600,
@@ -53,8 +54,8 @@ class ExpenseCard extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           currFormat.format(todayExpense),
-          style: const TextStyle(
-            color: Color(0xFFDEE5FF),
+          style: TextStyle(
+            color: context.appColors.primaryText,
             fontSize: 36,
             fontWeight: FontWeight.w800,
             height: 1.0,
@@ -64,8 +65,8 @@ class ExpenseCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFF192540).withValues(alpha: 0.4),
-            border: Border.all(color: const Color(0xFF40485D).withValues(alpha: 0.3)),
+            color: context.appColors.surface.withValues(alpha: 0.4),
+            border: Border.all(color: context.appColors.surface.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
@@ -75,14 +76,14 @@ class ExpenseCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.arrow_downward_rounded, color: Color(0xFFFB1D55), size: 14),
+                      Icon(Icons.arrow_downward_rounded, color: context.appColors.expense, size: 14),
                       SizedBox(width: 4),
                       Text(
                         "This Week's Exp",
                         style: TextStyle(
-                          color: Color(0xFFA3AAC4),
+                          color: context.appColors.primaryText.withOpacity(0.7),
                           fontWeight: FontWeight.w600,
                           fontSize: 10,
                         ),
@@ -92,8 +93,8 @@ class ExpenseCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     currFormat.format(weekExpense),
-                    style: const TextStyle(
-                      color: Color(0xFFDEE5FF),
+                    style: TextStyle(
+                      color: context.appColors.primaryText,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -104,20 +105,20 @@ class ExpenseCard extends StatelessWidget {
               Container(
                 height: 30,
                 width: 1,
-                color: const Color(0xFF40485D).withValues(alpha: 0.5),
+                color: context.appColors.surface.withValues(alpha: 0.5),
               ),
               // This Week's Income
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.arrow_upward_rounded, color: Color(0xFF1DFBA5), size: 14),
+                      Icon(Icons.arrow_upward_rounded, color: context.appColors.income, size: 14),
                       SizedBox(width: 4),
                       Text(
                         "This Week's Inc",
                         style: TextStyle(
-                          color: Color(0xFFA3AAC4),
+                          color: context.appColors.primaryText.withOpacity(0.7),
                           fontWeight: FontWeight.w600,
                           fontSize: 10,
                         ),
@@ -127,8 +128,8 @@ class ExpenseCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     currFormat.format(weekIncome),
-                    style: const TextStyle(
-                      color: Color(0xFFDEE5FF),
+                    style: TextStyle(
+                      color: context.appColors.primaryText,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),

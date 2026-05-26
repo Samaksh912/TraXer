@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../models/isar_expense.dart';
@@ -21,12 +22,12 @@ class VoiceConfirmSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isExpense = result.type == TransactionType.expense;
-    final accentColor = isExpense ? const Color(0xFFFB1D55) : const Color(0xFF1DFBA5);
+    final accentColor = isExpense ? context.appColors.expense : context.appColors.income;
     final currFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF0D1524),
+      decoration: BoxDecoration(
+        color: context.appColors.background,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 36),
@@ -40,7 +41,7 @@ class VoiceConfirmSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFF40485D),
+                color: context.appColors.surface,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -48,10 +49,10 @@ class VoiceConfirmSheet extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Header
-          const Text(
+          Text(
             'CONFIRM TRANSACTION',
             style: TextStyle(
-              color: Color(0xFFA3AAC4),
+              color: context.appColors.primaryText.withOpacity(0.7),
               fontSize: 10,
               letterSpacing: 1.5,
               fontWeight: FontWeight.w600,
@@ -63,7 +64,7 @@ class VoiceConfirmSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF192540).withValues(alpha: 0.6),
+              color: context.appColors.surface.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: accentColor.withValues(alpha: 0.3),
@@ -95,8 +96,8 @@ class VoiceConfirmSheet extends StatelessWidget {
                     children: [
                       Text(
                         result.title,
-                        style: const TextStyle(
-                          color: Color(0xFFDEE5FF),
+                        style: TextStyle(
+                          color: context.appColors.primaryText,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -125,13 +126,13 @@ class VoiceConfirmSheet extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF40485D).withValues(alpha: 0.4),
+                              color: context.appColors.surface.withValues(alpha: 0.4),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               isExpense ? 'Expense' : 'Income',
-                              style: const TextStyle(
-                                color: Color(0xFFA3AAC4),
+                              style: TextStyle(
+                                color: context.appColors.primaryText.withOpacity(0.7),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -167,12 +168,12 @@ class VoiceConfirmSheet extends StatelessWidget {
                   onPressed: () => context.pop(),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: Color(0xFF40485D)),
+                    side: BorderSide(color: context.appColors.surface),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Cancel',
-                    style: TextStyle(color: Color(0xFFA3AAC4), fontWeight: FontWeight.w600),
+                    style: TextStyle(color: context.appColors.primaryText.withOpacity(0.7), fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -209,7 +210,7 @@ class VoiceConfirmSheet extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     backgroundColor: accentColor,
-                    foregroundColor: isExpense ? Colors.white : const Color(0xFF00452A),
+                    foregroundColor: isExpense ? Colors.white : context.appColors.income,
                     elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),

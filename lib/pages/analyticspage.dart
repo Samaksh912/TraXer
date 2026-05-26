@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../models/isar_expense.dart';
@@ -16,15 +17,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   String _timeFilter = 'This Month'; // Options: This Week, This Month, This Year
   int _touchedPieIndex = -1;
 
-  // Pre-defined premium color palette for categories
-  static const List<Color> _palette = [
-    Color(0xFF5B8EFF), // Blue
-    Color(0xFF874CFF), // Purple
+  List<Color> _palette(BuildContext context) => [
+    context.appColors.accent, // Blue
+    context.appColors.accent, // Purple
     Color(0xFFFACC15), // Yellow
-    Color(0xFF1DFBA5), // Mint Green
-    Color(0xFFFF9E9E), // Light Pink
-    Color(0xFF2DD4BF), // Teal
-    Color(0xFFFB1D55), // Red
+    context.appColors.income, // Mint Green
+    context.appColors.expense, // Light Pink
+    context.appColors.accent, // Teal
+    context.appColors.expense, // Red
   ];
 
   // --- DATA PROCESSING LOGIC ---
@@ -109,7 +109,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     final hasData = txs.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0D1424) : const Color(0xFFF7F9FC),
+      backgroundColor: isDark ? context.appColors.background : context.appColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -217,7 +217,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF192540) : Colors.white,
+        color: isDark ? context.appColors.surface : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -244,7 +244,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   child: Text(
                     filter,
                     style: TextStyle(
-                      color: isSelected ? Colors.white : (isDark ? const Color(0xFFA3AAC4) : Colors.grey.shade500),
+                      color: isSelected ? Colors.white : (isDark ? context.appColors.primaryText.withOpacity(0.7) : Colors.grey.shade500),
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                       fontSize: 12,
                     ),
@@ -269,8 +269,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
           decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
-                    ? [const Color(0xFF2C3E50), const Color(0xFF000000)]
-                    : [const Color(0xFF2C3E50), const Color(0xFF4CA1AF)],
+                    ? [Color(0xFF2C3E50), context.appColors.primaryText]
+                    : [Color(0xFF2C3E50), context.appColors.accent],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -308,9 +308,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
         // Income / Expense Split
         Row(
           children: [
-            Expanded(child: _buildMiniCard('Income', _totalIncome, const Color(0xFF1DFBA5), isDark, currFormat, Icons.keyboard_arrow_down_rounded)),
+            Expanded(child: _buildMiniCard('Income', _totalIncome, context.appColors.income, isDark, currFormat, Icons.keyboard_arrow_down_rounded)),
             const SizedBox(width: 16),
-            Expanded(child: _buildMiniCard('Expense', _totalExpense, const Color(0xFFFB1D55), isDark, currFormat, Icons.keyboard_arrow_up_rounded)),
+            Expanded(child: _buildMiniCard('Expense', _totalExpense, context.appColors.expense, isDark, currFormat, Icons.keyboard_arrow_up_rounded)),
           ],
         )
       ],
@@ -321,7 +321,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF192540) : Colors.white,
+        color: isDark ? context.appColors.surface : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05)),
       ),
@@ -336,7 +336,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 child: Icon(icon, color: color, size: 14),
               ),
               const SizedBox(width: 8),
-              Text(title, style: TextStyle(color: isDark ? const Color(0xFFA3AAC4) : Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w600)),
+              Text(title, style: TextStyle(color: isDark ? context.appColors.primaryText.withOpacity(0.7) : Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w600)),
             ],
           ),
           const SizedBox(height: 12),
@@ -362,7 +362,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       height: 260,
       padding: const EdgeInsets.only(top: 24, right: 24, left: 10, bottom: 10),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF192540) : Colors.white,
+        color: isDark ? context.appColors.surface : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05)),
       ),
@@ -377,12 +377,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   if (flSpot.barIndex == 0) {
                     return LineTooltipItem(
                       'Income: ₹${flSpot.y.toStringAsFixed(0)}',
-                      const TextStyle(color: Color(0xFF1DFBA5), fontWeight: FontWeight.bold),
+                      TextStyle(color: context.appColors.income, fontWeight: FontWeight.bold),
                     );
                   } else {
                     return LineTooltipItem(
                       'Expense: ₹${flSpot.y.toStringAsFixed(0)}',
-                      const TextStyle(color: Color(0xFFFB1D55), fontWeight: FontWeight.bold),
+                      TextStyle(color: context.appColors.expense, fontWeight: FontWeight.bold),
                     );
                   }
                 }).toList();
@@ -405,7 +405,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 reservedSize: 30,
                 interval: _timeFilter == 'This Year' ? 3 : (_timeFilter == 'This Month' ? 7 : 1),
                 getTitlesWidget: (value, meta) {
-                  const style = TextStyle(color: Color(0xFFA3AAC4), fontWeight: FontWeight.bold, fontSize: 10);
+                  final style = TextStyle(color: context.appColors.primaryText.withOpacity(0.7), fontWeight: FontWeight.bold, fontSize: 10);
                   String text = '';
                   if (_timeFilter == 'This Week') {
                     switch (value.toInt()) {
@@ -438,14 +438,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
               spots: incomeSpots,
               isCurved: true,
               curveSmoothness: 0.35,
-              color: const Color(0xFF1DFBA5),
+              color: context.appColors.income,
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
               belowBarData: BarAreaData(
                 show: true,
                 gradient: LinearGradient(
-                  colors: [const Color(0xFF1DFBA5).withOpacity(0.2), const Color(0xFF1DFBA5).withOpacity(0.0)],
+                  colors: [context.appColors.income.withOpacity(0.2), context.appColors.income.withOpacity(0.0)],
                   begin: Alignment.topCenter, end: Alignment.bottomCenter,
                 ),
               ),
@@ -455,14 +455,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
               spots: expenseSpots,
               isCurved: true,
               curveSmoothness: 0.35,
-              color: const Color(0xFFFB1D55),
+              color: context.appColors.expense,
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
               belowBarData: BarAreaData(
                 show: true,
                 gradient: LinearGradient(
-                  colors: [const Color(0xFFFB1D55).withOpacity(0.2), const Color(0xFFFB1D55).withOpacity(0.0)],
+                  colors: [context.appColors.expense.withOpacity(0.2), context.appColors.expense.withOpacity(0.0)],
                   begin: Alignment.topCenter, end: Alignment.bottomCenter,
                 ),
               ),
@@ -490,7 +490,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
     categories.forEach((category, amount) {
       final isTouched = categories.keys.toList().indexOf(category) == _touchedPieIndex;
-      final color = _palette[colorIndex % _palette.length];
+      final color = _palette(context)[colorIndex % _palette(context).length];
       final percentage = (amount / _totalExpense) * 100;
 
       // Build Chart Section
@@ -518,7 +518,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 ),
                 Text(
                     currFormat.format(amount),
-                    style: TextStyle(color: isDark ? const Color(0xFFA3AAC4) : Colors.black54, fontSize: 14, fontWeight: FontWeight.bold)
+                    style: TextStyle(color: isDark ? context.appColors.primaryText.withOpacity(0.7) : Colors.black54, fontSize: 14, fontWeight: FontWeight.bold)
                 ),
               ],
             ),
@@ -531,7 +531,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF192540) : Colors.white,
+        color: isDark ? context.appColors.surface : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05)),
       ),
@@ -570,7 +570,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Total', style: TextStyle(color: isDark ? const Color(0xFFA3AAC4) : Colors.black54, fontSize: 12)),
+                    Text('Total', style: TextStyle(color: isDark ? context.appColors.primaryText.withOpacity(0.7) : Colors.black54, fontSize: 12)),
                     const SizedBox(height: 4),
                     Text(
                       currFormat.format(_totalExpense),

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
@@ -44,7 +45,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               e.toString().replaceAll(RegExp(r'\[.*?\]'), ''),
               style: const TextStyle(fontSize: 16),
             ),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: context.appColors.expense,
           ),
         );
       }
@@ -67,7 +68,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               'Google Sign In Failed',
               style: const TextStyle(fontSize: 16),
             ),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: context.appColors.expense,
           ),
         );
       }
@@ -96,9 +97,11 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: isDark
-                          ? [const Color(0xFF0F2027), const Color(0xFF203A43), const Color(0xFF2C5364)]
-                          : [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9), const Color(0xFFA5D6A7)],
+                      colors: [
+                        context.appColors.background,
+                        context.appColors.surface,
+                        context.appColors.background,
+                      ],
                     ),
                     color: theme.cardColor.withValues(alpha: isDark ? 0.2 : 0.3),
                   ),
@@ -115,7 +118,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                 height: 300,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDark ? Colors.blueAccent.withValues(alpha: 0.1) : Colors.lightGreen.withValues(alpha: 0.2),
+                  color: context.appColors.income.withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -127,7 +130,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                 height: 250,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDark ? Colors.tealAccent.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.2),
+                  color: context.appColors.accent.withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -146,7 +149,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                       Icon(
                         Icons.monetization_on,
                         size: isCompact ? 60.0 : 80.0,
-                        color: isDark ? Colors.tealAccent : Colors.teal.shade700,
+                        color: context.appColors.accent,
                       ),
                       SizedBox(height: isCompact ? 8 : 12),
                       Text(
@@ -232,7 +235,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _handleSignup,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: isDark ? Colors.tealAccent.shade400 : Colors.teal.shade600,
+                            backgroundColor: context.appColors.accent,
                             foregroundColor: isDark ? Colors.black : Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18),
@@ -297,7 +300,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                                 text: "Log In",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.tealAccent : Colors.teal.shade700,
+                                  color: context.appColors.accent,
                                 ),
                               ),
                             ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'dart:ui';
 
 class ExpandableGlassFab extends StatefulWidget {
@@ -73,23 +74,30 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFF192540).withValues(alpha: 0.95),
+            color: context.appColors.surface.withValues(alpha: 0.95),
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: const Color(0xFF40485D).withValues(alpha: 0.8)),
+            border: Border.all(color: context.appColors.primaryText.withValues(alpha: 0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: Color(0xFFDEE5FF),
+                style: TextStyle(
+                  color: context.appColors.primaryText,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(icon, color: const Color(0xFF9EFFC8), size: 20),
+              Icon(icon, color: context.appColors.income, size: 20),
             ],
           ),
         ),
@@ -118,15 +126,15 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF192540).withValues(alpha: 0.95),
+                    color: context.appColors.surface.withValues(alpha: 0.95),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: const Color(0xFF40485D).withValues(alpha: 0.8),
+                      color: context.appColors.primaryText.withValues(alpha: 0.1),
                     ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.search, color: Color(0xFF9EFFC8)),
+                      Icon(Icons.search, color: context.appColors.income),
                       const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
@@ -227,28 +235,29 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
                   decoration: BoxDecoration(
                     gradient: _isOpen
                         ? null
-                        : const LinearGradient(
-                            colors: [Color(0xFF9EFFC8), Color(0xFF1DFBA5)],
+                        : LinearGradient(
+                            colors: [context.appColors.accent, context.appColors.accent],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                     color: _isOpen
-                        ? const Color(0xFF192540).withValues(alpha: 0.95)
+                        ? context.appColors.surface.withValues(alpha: 0.95)
                         : null,
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: _isOpen
-                          ? const Color(0xFF40485D).withValues(alpha: 0.8)
-                          : const Color(0xFF1DFBA5).withValues(alpha: 0.8),
+                          ? context.appColors.primaryText.withValues(alpha: 0.1)
+                          : context.appColors.accent.withValues(alpha: 0.8),
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: _isOpen
-                            ? Colors.transparent
-                            : const Color(0xFF9EFFC8).withValues(alpha: 0.6),
-                        blurRadius: _isOpen ? 0 : 25,
+                            ? Colors.black.withValues(alpha: 0.1)
+                            : context.appColors.accent.withValues(alpha: 0.6),
+                        blurRadius: _isOpen ? 10 : 25,
                         spreadRadius: _isOpen ? 0 : 5,
+                        offset: _isOpen ? const Offset(0, 4) : Offset.zero,
                       ),
                     ],
                   ),
@@ -259,7 +268,7 @@ class _ExpandableGlassFabState extends State<ExpandableGlassFab>
                       curve: Curves.fastLinearToSlowEaseIn,
                       child: Icon(
                         Icons.add,
-                        color: _isOpen ? Colors.white : const Color(0xFF00452A),
+                        color: _isOpen ? context.appColors.primaryText : Colors.white,
                         size: 32,
                       ),
                     ),

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import '../models/isar_expense.dart';
 
@@ -84,7 +85,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                 return Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF192540) : Colors.white,
+                    color: isDark ? context.appColors.surface : Colors.white,
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                   ),
                   child: SafeArea(
@@ -119,8 +120,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                                 setModalState(() => _filterType = type);
                                 _applyFiltersAndSort();
                               },
-                              selectedColor: const Color(0xFF5B8EFF).withOpacity(0.2),
-                              labelStyle: TextStyle(color: isSelected ? const Color(0xFF5B8EFF) : (isDark ? Colors.white : Colors.black)),
+                              selectedColor: context.appColors.accent.withOpacity(0.2),
+                              labelStyle: TextStyle(color: isSelected ? context.appColors.accent : (isDark ? Colors.white : Colors.black)),
                               backgroundColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             );
@@ -144,8 +145,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                                   setModalState(() => _filterCategory = cat);
                                   _applyFiltersAndSort();
                                 },
-                                selectedColor: const Color(0xFF5B8EFF).withOpacity(0.2),
-                                labelStyle: TextStyle(color: isSelected ? const Color(0xFF5B8EFF) : (isDark ? Colors.white : Colors.black)),
+                                selectedColor: context.appColors.accent.withOpacity(0.2),
+                                labelStyle: TextStyle(color: isSelected ? context.appColors.accent : (isDark ? Colors.white : Colors.black)),
                                 backgroundColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               );
@@ -165,7 +166,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                               lastDate: DateTime.now(),
                               initialDateRange: _filterDateRange,
                               builder: (context, child) => Theme(
-                                data: Theme.of(context).copyWith(colorScheme: const ColorScheme.dark(primary: Color(0xFF5B8EFF))),
+                                data: Theme.of(context).copyWith(colorScheme: ColorScheme.dark(primary: context.appColors.accent)),
                                 child: child!,
                               ),
                             );
@@ -213,7 +214,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                           child: ElevatedButton(
                             onPressed: () => Navigator.pop(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF5B8EFF),
+                              backgroundColor: context.appColors.accent,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             child: const Text('Apply Filters', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
@@ -232,7 +233,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   void _showTransactionDetails(IsarExpense tx, bool isDark) {
     final currFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹ ');
     final isExpense = tx.type == TransactionType.expense;
-    final color = isExpense ? const Color(0xFFFB1D55) : const Color(0xFF1DFBA5);
+    final color = isExpense ? context.appColors.expense : context.appColors.income;
 
     showModalBottomSheet(
         context: context,
@@ -241,7 +242,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           return Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF121A2F) : Colors.white,
+              color: isDark ? context.appColors.background : Colors.white,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             ),
             child: SafeArea(
@@ -316,7 +317,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     final currFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹ ');
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0D1424) : const Color(0xFFF7F9FC),
+      backgroundColor: isDark ? context.appColors.background : context.appColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -334,7 +335,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                 if (_filterType != 'All' || _filterCategory != 'All' || _filterDateRange != null)
                   Positioned(
                     right: 0, top: 0,
-                    child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFFB1D55), shape: BoxShape.circle)),
+                    child: Container(width: 8, height: 8, decoration: BoxDecoration(color: context.appColors.expense, shape: BoxShape.circle)),
                   )
               ],
             ),
@@ -373,8 +374,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           final isExpense = tx.type == TransactionType.expense;
 
           // Soft premium colors based on type
-          final accentColor = isExpense ? const Color(0xFFFB1D55) : const Color(0xFF1DFBA5);
-          final bgColor = isDark ? const Color(0xFF192540) : Colors.white;
+          final accentColor = isExpense ? context.appColors.expense : context.appColors.income;
+          final bgColor = isDark ? context.appColors.surface : Colors.white;
 
           // Grouping by date header logic (Optional, but looks premium)
           bool showDateHeader = false;
@@ -395,7 +396,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                   padding: const EdgeInsets.only(top: 24, bottom: 12, left: 4),
                   child: Text(
                     DateFormat('MMM dd, yyyy').format(tx.createdAt),
-                    style: TextStyle(color: isDark ? const Color(0xFFA3AAC4) : Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1),
+                    style: TextStyle(color: isDark ? context.appColors.primaryText.withOpacity(0.7) : Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1),
                   ),
                 ),
 
@@ -448,7 +449,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                                   const SizedBox(height: 4),
                                   Text(
                                     tx.category,
-                                    style: TextStyle(color: isDark ? const Color(0xFFA3AAC4) : Colors.black54, fontSize: 13, fontWeight: FontWeight.w500),
+                                    style: TextStyle(color: isDark ? context.appColors.primaryText.withOpacity(0.7) : Colors.black54, fontSize: 13, fontWeight: FontWeight.w500),
                                   ),
                                 ],
                               ),

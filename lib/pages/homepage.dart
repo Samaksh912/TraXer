@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -78,7 +79,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final recentTransactions = recentTransactionsAsync.valueOrNull ?? const <IsarExpense>[];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF060E20),
+      backgroundColor: context.appColors.background,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -92,7 +93,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF1DFBA5).withValues(alpha: 0.05),
+                    context.appColors.income.withValues(alpha: 0.05),
                     Colors.transparent,
                   ],
                 ),
@@ -109,7 +110,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF874CFF).withValues(alpha: 0.05),
+                    context.appColors.accent.withValues(alpha: 0.05),
                     Colors.transparent,
                   ],
                 ),
@@ -118,8 +119,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
           SafeArea(
             child: recentTransactionsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: Color(0xFF1DFBA5)),
+              loading: () => Center(
+                child: CircularProgressIndicator(color: context.appColors.income),
               ),
               error: (error, stackTrace) => Center(
                 child: Padding(

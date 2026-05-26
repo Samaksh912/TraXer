@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -22,7 +24,9 @@ Future<void> showVoiceBottomSheet(
 
 // ---------------------------------------------------------------------------
 
-enum _MicState { initializing, listening, processing, error }
+enum _MicState { initializing, listening, paused, processing, error }
+
+enum HapticFeedbackType { light, medium, heavy }
 
 class VoiceBottomSheet extends StatefulWidget {
   final Future<void> Function(IsarExpense) onSave;
@@ -44,6 +48,7 @@ class _VoiceBottomSheetState extends State<VoiceBottomSheet>
   /// Guard: prevents processing the same transcript twice if status
   /// callbacks fire multiple times before we close the sheet.
   bool _hasProcessed = false;
+
 
   late final AnimationController _pulseController;
   late final AnimationController _waveController;
@@ -121,12 +126,36 @@ class _VoiceBottomSheetState extends State<VoiceBottomSheet>
     _startListening();
   }
 
+  // Helper to safely trigger haptic feedback
+  Future<void> _triggerHaptic(HapticFeedbackType type) async {
+    try {
+      switch (type) {
+        case HapticFeedbackType.light:
+          await HapticFeedback.lightImpact();
+          break;
+        case HapticFeedbackType.medium:
+          await HapticFeedback.mediumImpact();
+          break;
+        case HapticFeedbackType.heavy:
+          await HapticFeedback.heavyImpact();
+          break;
+      }
+    } catch (e) {
+      // Silently fail if haptic feedback is not supported
+      debugPrint('Haptic feedback not available: $e');
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Start listening
   // ---------------------------------------------------------------------------
 
   void _startListening() {
     if (_hasProcessed) return;
+
+    // Haptic feedback when listening starts
+    _triggerHaptic(HapticFeedbackType.medium);
+
     setState(() {
       _micState = _MicState.listening;
       _transcript = '';
@@ -170,9 +199,38 @@ class _VoiceBottomSheetState extends State<VoiceBottomSheet>
     }
   }
 
+  // Pause listening
+  void _pauseListening() {
+    if (_hasProcessed || _micState != _MicState.listening) return;
+
+    // Haptic feedback when pausing
+    _triggerHaptic(HapticFeedbackType.light);
+
+    _speech.stop();
+    setState(() {
+      _micState = _MicState.paused;
+      _statusText = 'Paused';
+    });
+    _pulseController.stop();
+  }
+
+  // Resume from pause
+  void _resumeListening() {
+    if (_hasProcessed || _micState != _MicState.paused) return;
+
+    // Haptic feedback when resuming
+    _triggerHaptic(HapticFeedbackType.light);
+
+    _startListening();
+  }
+
   // User taps the mic to stop manually
   void _stopListening() {
     if (_hasProcessed) return;
+
+    // Haptic feedback when stopping
+    _triggerHaptic(HapticFeedbackType.light);
+
     _speech.stop();
     if (_transcript.trim().isEmpty) {
       _setError('Nothing heard — tap the mic and try again');
@@ -181,9 +239,22 @@ class _VoiceBottomSheetState extends State<VoiceBottomSheet>
     }
   }
 
+  // Retry after error
+  void _retry() {
+    setState(() {
+      _hasProcessed = false;
+      _transcript = '';
+      _statusText = 'Initializing…';
+    });
+    _initAndListen();
+  }
+
   Future<void> _processTranscript() async {
     if (_hasProcessed) return; // double-fire guard
     _hasProcessed = true;
+
+    // Haptic feedback when speech ends and processing begins
+    _triggerHaptic(HapticFeedbackType.medium);
 
     if (!mounted) return;
     setState(() {
@@ -219,13 +290,13 @@ class _VoiceBottomSheetState extends State<VoiceBottomSheet>
 
     // Show a brief success snackbar
     final isExpense = result.type == TransactionType.expense;
-    final accentColor = isExpense ? const Color(0xFFFB1D55) : const Color(0xFF1DFBA5);
+    final accentColor = isExpense ? context.appColors.expense : context.appColors.income;
     final typeLabel = isExpense ? 'Expense' : 'Income';
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF192540),
+        backgroundColor: context.appColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         duration: const Duration(seconds: 3),
@@ -252,16 +323,16 @@ class _VoiceBottomSheetState extends State<VoiceBottomSheet>
                 children: [
                   Text(
                     '$typeLabel added!',
-                    style: const TextStyle(
-                      color: Color(0xFFDEE5FF),
+                    style: TextStyle(
+                      color: context.appColors.primaryText,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
                   ),
                   Text(
                     '${result.title} · ₹${result.amount.toStringAsFixed(0)} · ${result.category}',
-                    style: const TextStyle(
-                      color: Color(0xFFA3AAC4),
+                    style: TextStyle(
+                      color: context.appColors.primaryText.withOpacity(0.7),
                       fontSize: 11,
                     ),
                     maxLines: 1,
@@ -304,188 +375,316 @@ class _VoiceBottomSheetState extends State<VoiceBottomSheet>
   Widget build(BuildContext context) {
     final isInitializing = _micState == _MicState.initializing;
     final isListening = _micState == _MicState.listening;
+    final isPaused = _micState == _MicState.paused;
     final isProcessing = _micState == _MicState.processing;
     final isError = _micState == _MicState.error;
 
     final micColor = isError
-        ? const Color(0xFFFB1D55)
+        ? context.appColors.expense
         : isListening
-            ? const Color(0xFF1DFBA5)
+            ? context.appColors.income
             : isProcessing
-                ? const Color(0xFF5B8EFF)
-                : const Color(0xFF5B8EFF);
+                ? context.appColors.accent
+                : context.appColors.accent;
 
     // Clamp to screen height so it never overflows on small devices
-    final sheetHeight = (MediaQuery.of(context).size.height * 0.58).clamp(380.0, 480.0);
+    final sheetHeight = (MediaQuery.of(context).size.height * 0.58).clamp(380.0, 520.0);
 
     return SizedBox(
       height: sheetHeight,
       child: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF0D1524),
+        decoration: BoxDecoration(
+          color: context.appColors.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 36),
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
-          // Handle
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: const Color(0xFF40485D),
-              borderRadius: BorderRadius.circular(2),
+            // Handle
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: context.appColors.surface,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-          // Label
-          const Text(
-            'VOICE INPUT',
-            style: TextStyle(
-              color: Color(0xFFA3AAC4),
-              fontSize: 10,
-              letterSpacing: 1.5,
-              fontWeight: FontWeight.w600,
+            // Label
+            Text(
+              'VOICE INPUT',
+              style: TextStyle(
+                color: context.appColors.primaryText.withOpacity(0.7),
+                fontSize: 10,
+                letterSpacing: 1.5,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
+            const SizedBox(height: 20),
 
-          // Mic button — fixed 180×180 so layout never shifts
-          GestureDetector(
-            onTap: isListening
-                ? _stopListening
-                : (isInitializing || isProcessing) ? null : _startListening,
-            child: SizedBox(
-              width: 180,
-              height: 180,
-              child: Stack(
-                alignment: Alignment.center,
-                clipBehavior: Clip.none,
-                children: [
-                  // Expanding wave ring — always in tree, opacity drives visibility
-                  AnimatedBuilder(
-                    animation: _waveController,
-                    builder: (context, child) {
-                      final t = _waveController.value;
-                      final ringOpacity = isListening ? (1 - t) * 0.45 : 0.0;
-                      final ringSize = 120.0 + 60 * t;
-                      return Center(
+            // Mic button — fixed 180×180 so layout never shifts
+            GestureDetector(
+              onTap: isListening
+                  ? _stopListening
+                  : isPaused
+                      ? _resumeListening
+                      : (isInitializing || isProcessing)
+                          ? null
+                          : _startListening,
+              child: SizedBox(
+                width: 160,
+                height: 160,
+                child: Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Expanding wave ring — always in tree, opacity drives visibility
+                    AnimatedBuilder(
+                      animation: _waveController,
+                      builder: (context, child) {
+                        final t = _waveController.value;
+                        final ringOpacity = isListening ? (1 - t) * 0.45 : 0.0;
+                        final ringSize = 120.0 + 60 * t;
+                        return Center(
+                          child: Container(
+                            width: ringSize,
+                            height: ringSize,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: micColor.withValues(alpha: ringOpacity),
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    // Pulse scale — Transform has zero layout impact
+                    AnimatedBuilder(
+                      animation: _pulseAnim,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: isListening ? _pulseAnim.value : 1.0,
+                          child: child,
+                        );
+                      },
+                      child: Container(
+                        width: 96,
+                        height: 96,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: micColor.withValues(alpha: 0.15),
+                          border: Border.all(
+                            color: micColor.withValues(alpha: 0.5),
+                            width: 2,
+                          ),
+                        ),
+                        child: isProcessing || isInitializing
+                            ? Center(
+                                child: SizedBox(
+                                  width: 28,
+                                  height: 28,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation(micColor),
+                                  ),
+                                ),
+                              )
+                            : Icon(
+                                isPaused
+                                    ? Icons.play_arrow_rounded
+                                    : isListening
+                                        ? Icons.stop_rounded
+                                        : Icons.mic_rounded,
+                                color: micColor,
+                                size: 40,
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Status text
+            Text(
+              _statusText,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isError ? context.appColors.expense : context.appColors.primaryText.withOpacity(0.7),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Live transcript — flexible height
+            Flexible(
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: _transcript.isEmpty ? 0.0 : 1.0,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: context.appColors.surface.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: context.appColors.surface.withValues(alpha: 0.3)),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    _transcript.isEmpty ? '' : '"$_transcript"',
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: context.appColors.primaryText,
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Pause/Resume buttons row (shown if listening or paused)
+            if (isListening || isPaused)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Pause button (when listening)
+                    if (isListening)
+                      GestureDetector(
+                        onTap: _pauseListening,
                         child: Container(
-                          width: ringSize,
-                          height: ringSize,
+                          width: 48,
+                          height: 48,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
+                            color: context.appColors.surface,
                             border: Border.all(
-                              color: micColor.withValues(alpha: ringOpacity),
+                              color: context.appColors.surface,
                               width: 1.5,
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                  // Pulse scale — Transform has zero layout impact
-                  AnimatedBuilder(
-                    animation: _pulseAnim,
-                    builder: (context, child) {
-                      return Transform.scale(
-                        scale: isListening ? _pulseAnim.value : 1.0,
-                        child: child,
-                      );
-                    },
-                    child: Container(
-                      width: 96,
-                      height: 96,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: micColor.withValues(alpha: 0.15),
-                        border: Border.all(
-                          color: micColor.withValues(alpha: 0.5),
-                          width: 2,
+                          child: Icon(
+                            Icons.pause_rounded,
+                            color: context.appColors.primaryText.withOpacity(0.7),
+                            size: 22,
+                          ),
                         ),
                       ),
-                      child: isProcessing || isInitializing
-                          ? Center(
-                              child: SizedBox(
-                                width: 28,
-                                height: 28,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation(micColor),
-                                ),
-                              ),
-                            )
-                          : Icon(
-                              isListening ? Icons.stop_rounded : Icons.mic_rounded,
-                              color: micColor,
-                              size: 40,
+                    // Resume button (when paused)
+                    if (isPaused)
+                      GestureDetector(
+                        onTap: _resumeListening,
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: context.appColors.income,
+                            border: Border.all(
+                              color: context.appColors.income,
+                              width: 1.5,
                             ),
+                          ),
+                          child: Icon(
+                            Icons.play_arrow_rounded,
+                            color: context.appColors.background,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    // Stop button
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: _stopListening,
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: context.appColors.expense,
+                          border: Border.all(
+                            color: context.appColors.expense,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.stop_rounded,
+                          color: context.appColors.background,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Retry button (shown if error)
+            if (isError)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: GestureDetector(
+                  onTap: _retry,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: context.appColors.accent,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: context.appColors.accent,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.refresh_rounded,
+                          color: context.appColors.background,
+                          size: 18,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'Retry',
+                          style: TextStyle(
+                            color: context.appColors.background,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-
-          // Status text
-          Text(
-            _statusText,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isError ? const Color(0xFFFB1D55) : const Color(0xFFA3AAC4),
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Live transcript — fixed height so sheet doesn't bounce
-          SizedBox(
-            height: 72,
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 200),
-              opacity: _transcript.isEmpty ? 0.0 : 1.0,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF192540).withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF40485D).withValues(alpha: 0.3)),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  _transcript.isEmpty ? '' : '"$_transcript"',
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFFDEE5FF),
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                    height: 1.4,
-                  ),
                 ),
               ),
-            ),
-          ),
 
-          const SizedBox(height: 16),
-
-          // Hint
-          Text(
-            isListening
-                ? 'Tap the mic to stop'
-                : 'e.g. "Bought 2 books for 400" or "Got 500 from dad"',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: const Color(0xFFA3AAC4).withValues(alpha: 0.6),
-              fontSize: 11,
+            // Hint
+            Text(
+              isListening
+                  ? 'Tap the mic to stop or pause'
+                  : isPaused
+                      ? 'Resume listening or stop'
+                      : 'e.g. "Bought 2 books for 400" or "Got 500 from dad"',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: context.appColors.primaryText.withOpacity(0.7).withValues(alpha: 0.6),
+                fontSize: 10,
+              ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );

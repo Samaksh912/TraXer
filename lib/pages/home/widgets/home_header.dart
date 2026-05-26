@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/app_providers.dart';
@@ -26,17 +27,17 @@ class HomeHeader extends ConsumerWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFF40485D).withValues(alpha: 0.3),
+                  color: context.appColors.surface.withValues(alpha: 0.3),
                 ),
-                color: const Color(0xFF111827),
+                color: context.appColors.background,
               ),
-              child: Icon(profile.avatarIcon, color: const Color(0xFF9EFFC8)),
+              child: Icon(profile.avatarIcon, color: context.appColors.income),
             ),
             const SizedBox(width: 12),
             Text(
               profile.displayName.trim().isEmpty ? 'EXPNSE' : profile.displayName,
               style: TextStyle(
-                color: Color(0xFF9EFFC8),
+                color: context.appColors.income,
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
                 letterSpacing: -1.0,
@@ -46,9 +47,9 @@ class HomeHeader extends ConsumerWidget {
         ),
         InkWell(
           onTap: onSettingsTap,
-          child: const Padding(
+          child: Padding(
             padding: EdgeInsets.all(8),
-            child: Icon(Icons.settings_outlined, color: Color(0xFF9EFFC8)),
+            child: Icon(Icons.settings_outlined, color: context.appColors.income),
           ),
         ),
       ],

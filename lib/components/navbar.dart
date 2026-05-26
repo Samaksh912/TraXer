@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 class FloatingBottomNavBar extends StatefulWidget {
   final bool isVisible;
   final VoidCallback onAddTap; // Renamed from onVoiceTap
@@ -33,7 +34,7 @@ class _FloatingBottomNavBarState extends State<FloatingBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final backgroundColor = isDark ? context.appColors.surface : Colors.white;
     final fabColor = const Color(0xFF2C3E50);
 
     return AnimatedSlide(
@@ -131,7 +132,7 @@ class _FloatingBottomNavBarState extends State<FloatingBottomNavBar> {
         ),
         IconButton(
           onPressed: _toggleSearch,
-          icon: const Icon(Icons.close_rounded, color: Colors.redAccent),
+          icon: Icon(Icons.close_rounded, color: context.appColors.expense),
         ),
       ],
     );

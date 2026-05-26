@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
 import '../../../models/isar_expense.dart';
@@ -15,7 +16,7 @@ class TransactionListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isIncome = transaction.type == TransactionType.income;
     final amountColor =
-        isIncome ? const Color(0xFF9EFFC8) : const Color(0xFFFF716C);
+        isIncome ? context.appColors.income : context.appColors.expense;
     final amountPrefix = isIncome ? '+ ₹' : '- ₹';
     final dateLabel = DateFormat('dd MMM').format(transaction.createdAt);
 
@@ -32,51 +33,51 @@ class TransactionListItem extends StatelessWidget {
           print('Delete ${transaction.title}');
         }
       },
-      color: const Color(0xFF192540),
+      color: context.appColors.surface,
       elevation: 8,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: const Color(0xFF40485D).withValues(alpha: 0.5)),
+        side: BorderSide(color: context.appColors.surface.withValues(alpha: 0.5)),
       ),
       offset: const Offset(0, 45), // Drops down slightly below the tap area
       tooltip: 'Transaction options', // Removed default long-press tooltip
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'details',
           child: Row(
             children: [
-              Icon(Icons.info_outline_rounded, color: Color(0xFFDEE5FF), size: 18),
+              Icon(Icons.info_outline_rounded, color: context.appColors.primaryText, size: 18),
               SizedBox(width: 12),
               Text(
                 'Details',
-                style: TextStyle(color: Color(0xFFDEE5FF), fontWeight: FontWeight.w500),
+                style: TextStyle(color: context.appColors.primaryText, fontWeight: FontWeight.w500),
               ),
             ],
           ),
         ),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'edit',
           child: Row(
             children: [
-              Icon(Icons.edit_outlined, color: Color(0xFFDEE5FF), size: 18),
+              Icon(Icons.edit_outlined, color: context.appColors.primaryText, size: 18),
               SizedBox(width: 12),
               Text(
                 'Edit',
-                style: TextStyle(color: Color(0xFFDEE5FF), fontWeight: FontWeight.w500),
+                style: TextStyle(color: context.appColors.primaryText, fontWeight: FontWeight.w500),
               ),
             ],
           ),
         ),
         const PopupMenuDivider(height: 8), // Divider before destructive action
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'delete',
           child: Row(
             children: [
-              Icon(Icons.delete_outline_rounded, color: Color(0xFFFF716C), size: 18),
+              Icon(Icons.delete_outline_rounded, color: context.appColors.expense, size: 18),
               SizedBox(width: 12),
               Text(
                 'Delete',
-                style: TextStyle(color: Color(0xFFFF716C), fontWeight: FontWeight.bold),
+                style: TextStyle(color: context.appColors.expense, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -86,7 +87,7 @@ class TransactionListItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF060E20).withValues(alpha: 0.3),
+          color: context.appColors.background.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -94,13 +95,13 @@ class TransactionListItem extends StatelessWidget {
             Container(
               width: 36,
               height: 36,
-              decoration: const BoxDecoration(
-                color: Color(0xFF192540),
+              decoration: BoxDecoration(
+                color: context.appColors.surface,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isIncome ? Icons.arrow_downward : Icons.shopping_bag_outlined,
-                color: const Color(0xFF9EFFC8),
+                color: context.appColors.income,
                 size: 18,
               ),
             ),
@@ -111,8 +112,8 @@ class TransactionListItem extends StatelessWidget {
                 children: [
                   Text(
                     transaction.title,
-                    style: const TextStyle(
-                      color: Color(0xFFDEE5FF),
+                    style: TextStyle(
+                      color: context.appColors.primaryText,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -120,8 +121,8 @@ class TransactionListItem extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     '${transaction.category} • $dateLabel',
-                    style: const TextStyle(
-                      color: Color(0xFFA3AAC4),
+                    style: TextStyle(
+                      color: context.appColors.primaryText.withOpacity(0.7),
                       fontSize: 10,
                       letterSpacing: 0.5,
                       fontWeight: FontWeight.w500,

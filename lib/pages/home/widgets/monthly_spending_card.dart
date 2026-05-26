@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
@@ -79,6 +80,15 @@ class _MonthlySpendingCardState extends ConsumerState<MonthlySpendingCard> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<bool>(monthlySpendingViewProvider, (previous, next) {
+      if (previous != next && mounted) {
+        setState(() {
+          _touchedIndex = -1;
+          _touchOffset = null;
+        });
+      }
+    });
+
     final isDailyView = ref.watch(monthlySpendingViewProvider);
     final categoryColors = _assignColors(context, widget.transactions);
 
@@ -162,22 +172,31 @@ class _MonthlySpendingCardState extends ConsumerState<MonthlySpendingCard> {
 
     maxY = maxY > 0 ? maxY * 1.2 : 100;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    return TapRegion(
+      onTapOutside: (_) {
+        if (_touchedIndex != -1) {
+          setState(() {
+            _touchedIndex = -1;
+            _touchOffset = null;
+          });
+        }
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
         // --- YOUR EXACT SPENDING ANALYSIS HEADER & TOGGLE ---
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'SPENDING ANALYSIS',
-              style: TextStyle(color: Color(0xFFA3AAC4), fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.w600),
+              style: TextStyle(color: context.appColors.primaryText.withOpacity(0.7), fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.w600),
             ),
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF192540).withOpacity(0.5),
+                color: context.appColors.background.withOpacity(0.5),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF40485D).withOpacity(0.3)),
+                border: Border.all(color: context.appColors.primaryText.withOpacity(0.1)),
               ),
               child: Row(
                 children: [
@@ -186,10 +205,10 @@ class _MonthlySpendingCardState extends ConsumerState<MonthlySpendingCard> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: isDailyView ? const Color(0xFF40485D) : Colors.transparent,
+                        color: isDailyView ? context.appColors.accent : Colors.transparent,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text('Days', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: isDailyView ? Colors.white : const Color(0xFFA3AAC4))),
+                      child: Text('Days', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: isDailyView ? Colors.white : context.appColors.primaryText.withOpacity(0.7))),
                     ),
                   ),
                   GestureDetector(
@@ -197,10 +216,10 @@ class _MonthlySpendingCardState extends ConsumerState<MonthlySpendingCard> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: !isDailyView ? const Color(0xFF40485D) : Colors.transparent,
+                        color: !isDailyView ? context.appColors.accent : Colors.transparent,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text('Months', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: !isDailyView ? Colors.white : const Color(0xFFA3AAC4))),
+                      child: Text('Months', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: !isDailyView ? Colors.white : context.appColors.primaryText.withOpacity(0.7))),
                     ),
                   ),
                 ],
@@ -209,8 +228,8 @@ class _MonthlySpendingCardState extends ConsumerState<MonthlySpendingCard> {
           ],
         ),
         const SizedBox(height: 8),
-        Text(currFormat.format(totalSpent), style: const TextStyle(color: Color(0xFFDEE5FF), fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
-        Text(isDailyView ? 'Spent in last 7 days' : 'Spent in last 6 months', style: const TextStyle(color: Color(0xFFA3AAC4), fontSize: 10)),
+        Text(currFormat.format(totalSpent), style: TextStyle(color: context.appColors.primaryText, fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
+        Text(isDailyView ? 'Spent in last 7 days' : 'Spent in last 6 months', style: TextStyle(color: context.appColors.primaryText.withOpacity(0.7), fontSize: 10)),
         const SizedBox(height: 24),
 
         // --- THE CHART WITH OVERLAY LOGIC ---
@@ -234,13 +253,19 @@ class _MonthlySpendingCardState extends ConsumerState<MonthlySpendingCard> {
                                   getTooltipItem: (group, groupIndex, rod, rodIndex) => null,
                                 ),
                                 touchCallback: (FlTouchEvent event, barTouchResponse) {
-                                  if (!event.isInterestedForInteractions || barTouchResponse == null || barTouchResponse.spot == null) {
-                                    return;
+                                  if (event is FlTapUpEvent) {
+                                    if (barTouchResponse == null || barTouchResponse.spot == null) {
+                                      setState(() {
+                                        _touchedIndex = -1;
+                                        _touchOffset = null;
+                                      });
+                                    } else {
+                                      setState(() {
+                                        _touchedIndex = barTouchResponse.spot!.touchedBarGroupIndex;
+                                        _touchOffset = barTouchResponse.spot!.offset;
+                                      });
+                                    }
                                   }
-                                  setState(() {
-                                    _touchedIndex = barTouchResponse.spot!.touchedBarGroupIndex;
-                                    _touchOffset = barTouchResponse.spot!.offset;
-                                  });
                                 },
                               ),
                               titlesData: FlTitlesData(
@@ -252,7 +277,7 @@ class _MonthlySpendingCardState extends ConsumerState<MonthlySpendingCard> {
                                     getTitlesWidget: (double value, _) {
                                       return Padding(
                                         padding: const EdgeInsets.only(top: 8.0),
-                                        child: Text(xLabels[value.toInt()], style: const TextStyle(color: Color(0xFFA3AAC4), fontSize: 10, fontWeight: FontWeight.bold)),
+                                        child: Text(xLabels[value.toInt()], style: TextStyle(color: context.appColors.primaryText.withOpacity(0.7), fontSize: 10, fontWeight: FontWeight.bold)),
                                       );
                                     },
                                   ),
@@ -266,7 +291,7 @@ class _MonthlySpendingCardState extends ConsumerState<MonthlySpendingCard> {
                                 show: true,
                                 drawVerticalLine: false,
                                 horizontalInterval: maxY / 4,
-                                getDrawingHorizontalLine: (value) => FlLine(color: const Color(0xFF40485D).withOpacity(0.2), strokeWidth: 1, dashArray: [4, 4]),
+                                getDrawingHorizontalLine: (value) => FlLine(color: context.appColors.surface.withOpacity(0.2), strokeWidth: 1, dashArray: [4, 4]),
                               ),
                               barGroups: barGroups,
                             ),
@@ -324,7 +349,7 @@ class _MonthlySpendingCardState extends ConsumerState<MonthlySpendingCard> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF5B8EFF),
+                                color: context.appColors.accent,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Text(
@@ -352,7 +377,7 @@ class _MonthlySpendingCardState extends ConsumerState<MonthlySpendingCard> {
                 children: [
                   Container(width: 8, height: 8, decoration: BoxDecoration(color: e.value, shape: BoxShape.circle)),
                   const SizedBox(width: 4),
-                  Text(e.key, style: const TextStyle(color: Color(0xFFA3AAC4), fontSize: 10, fontWeight: FontWeight.w500)),
+                  Text(e.key, style: TextStyle(color: context.appColors.primaryText.withOpacity(0.7), fontSize: 10, fontWeight: FontWeight.w500)),
                 ],
               );
             }).toList(),

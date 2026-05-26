@@ -18,6 +18,7 @@ import 'providers/auth_provider.dart';
 import 'providers/expense_providers.dart';
 import 'services/connectivity_sync_trigger.dart';
 import 'services/isar_service.dart';
+import 'core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -189,35 +190,9 @@ class _MyAppState extends ConsumerState<MyApp> {
       themeMode: mode,
       routerConfig: router,
       // LIGHT THEME
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2C3E50),
-          brightness: Brightness.light,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF5F7FA),
-        cardColor: Colors.white,
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Color(0xFF2D3142)),
-          bodyMedium: TextStyle(color: Color(0xFF2D3142)),
-        ),
-      ),
+      theme: AppTheme.lightTheme,
       // DARK THEME
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2C3E50),
-          brightness: Brightness.dark,
-        ),
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        cardColor: const Color(0xFF1E1E1E),
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white70),
-        ),
-      ),
+      darkTheme: AppTheme.darkTheme,
     );
   }
 }

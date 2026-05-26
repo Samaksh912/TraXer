@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/auth_provider.dart';
@@ -70,8 +71,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               children: [
                 CircleAvatar(
                   radius: 34,
-                  backgroundColor: const Color(0xFF111827),
-                  child: Icon(profile.avatarIcon, color: const Color(0xFF9EFFC8), size: 34),
+                  backgroundColor: context.appColors.background,
+                  child: Icon(profile.avatarIcon, color: context.appColors.income, size: 34),
                 ),
                 const SizedBox(height: 20),
                 TextField(

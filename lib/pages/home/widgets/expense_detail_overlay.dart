@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/isar_expense.dart';
 
@@ -138,6 +139,7 @@ class _ExpenseDetailOverlayState extends State<ExpenseDetailOverlay> with Single
                     startPoints: starts,
                     endPoints: ends,
                     colors: activeColors,
+                    dotColor: context.appColors.primaryText,
                   ),
                 ),
               );
@@ -160,7 +162,7 @@ class _ExpenseDetailOverlayState extends State<ExpenseDetailOverlay> with Single
                         height: MediaQuery.of(context).size.height * 0.65 * _barGrowthAnimation.value,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
-                          color: const Color(0xFF192540).withOpacity(0.5),
+                          color: context.appColors.surface.withOpacity(0.5),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: Column(
@@ -200,17 +202,17 @@ class _ExpenseDetailOverlayState extends State<ExpenseDetailOverlay> with Single
                               children: [
                                 Text(
                                   widget.intervalLabel,
-                                  style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+                                  style: TextStyle(color: context.appColors.primaryText, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Total: ${currFormat.format(totalAmount)}',
-                                  style: const TextStyle(color: Color(0xFFA3AAC4), fontSize: 13, fontWeight: FontWeight.w500),
+                                  style: TextStyle(color: context.appColors.primaryText.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
                             IconButton(
-                              icon: const Icon(Icons.close_rounded, color: Color(0xFFA3AAC4), size: 24),
+                              icon: Icon(Icons.close_rounded, color: context.appColors.primaryText.withOpacity(0.7), size: 24),
                               onPressed: () => Navigator.of(context).pop(),
                             )
                           ],
@@ -249,7 +251,7 @@ class _ExpenseDetailOverlayState extends State<ExpenseDetailOverlay> with Single
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF121A2F).withOpacity(0.7),
+                                          color: context.appColors.background.withOpacity(0.7),
                                           borderRadius: BorderRadius.circular(12),
                                           border: Border.all(color: catColor.withOpacity(0.15), width: 1),
                                         ),
@@ -266,13 +268,13 @@ class _ExpenseDetailOverlayState extends State<ExpenseDetailOverlay> with Single
                                                 const SizedBox(width: 10),
                                                 Text(
                                                     cat, // The Category Name (e.g., "Shopping") only appears once per card!
-                                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 0.5)
+                                                    style: TextStyle(color: context.appColors.primaryText, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 0.5)
                                                 ),
                                                 const Spacer(),
                                                 // Smart Addition: Show the total spent just in this category
                                                 Text(
                                                     currFormat.format(txList.fold(0.0, (sum, item) => sum + item.amount)),
-                                                    style: const TextStyle(color: Color(0xFFA3AAC4), fontSize: 13, fontWeight: FontWeight.w600)
+                                                    style: TextStyle(color: context.appColors.primaryText.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w600)
                                                 ),
                                               ],
                                             ),
@@ -296,7 +298,7 @@ class _ExpenseDetailOverlayState extends State<ExpenseDetailOverlay> with Single
                                                     Expanded(
                                                       child: Text(
                                                         tx.title,
-                                                        style: const TextStyle(color: Color(0xFFDEE5FF), fontSize: 14, fontWeight: FontWeight.w500),
+                                                        style: TextStyle(color: context.appColors.primaryText, fontSize: 14, fontWeight: FontWeight.w500),
                                                         maxLines: 1,
                                                         overflow: TextOverflow.ellipsis,
                                                       ),
@@ -304,7 +306,7 @@ class _ExpenseDetailOverlayState extends State<ExpenseDetailOverlay> with Single
                                                     const SizedBox(width: 12),
                                                     Text(
                                                         currFormat.format(tx.amount),
-                                                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)
+                                                        style: TextStyle(color: context.appColors.primaryText, fontSize: 14, fontWeight: FontWeight.bold)
                                                     ),
                                                   ],
                                                 ),
@@ -338,12 +340,14 @@ class ConnectionLinePainter extends CustomPainter {
   final List<Offset> startPoints;
   final List<Offset> endPoints;
   final List<Color> colors;
+  final Color dotColor;
 
   ConnectionLinePainter({
     required this.progress,
     required this.startPoints,
     required this.endPoints,
     required this.colors,
+    required this.dotColor,
   });
 
   @override
@@ -379,7 +383,7 @@ class ConnectionLinePainter extends CustomPainter {
           canvas.drawCircle(
               currentPosition,
               2.0,
-              Paint()..color = Colors.white..maskFilter = const MaskFilter.blur(BlurStyle.solid, 1.5)
+              Paint()..color = dotColor..maskFilter = const MaskFilter.blur(BlurStyle.solid, 1.5)
           );
         }
       }

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 
 class ExpandFromPointRoute extends PageRouteBuilder {
   final Widget page;
@@ -31,7 +32,7 @@ class ExpandFromPointRoute extends PageRouteBuilder {
             opacity: curvedAnimation,
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(color: const Color(0xFF0D1424).withOpacity(0.6)),
+              child: Container(color: context.appColors.background.withOpacity(0.6)),
             ),
           ),
           // 2. The Foreground Content: SCALES AND FADES

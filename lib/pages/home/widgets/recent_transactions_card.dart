@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traxer/core/theme/app_theme.dart';
 
 import '../../../models/isar_expense.dart';
 import 'transaction_list_item.dart';
@@ -23,23 +24,23 @@ class RecentTransactionsCard extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Recent Transactions',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFFDEE5FF),
+                  color: context.appColors.primaryText,
                 ),
               ),
               InkWell(
                 onTap: onViewAllTap,
                 borderRadius: BorderRadius.circular(8),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   child: Text(
                     'VIEW ALL',
                     style: TextStyle(
-                      color: Color(0xFF9EFFC8),
+                      color: context.appColors.income,
                       fontSize: 10,
                       letterSpacing: 1.0,
                       fontWeight: FontWeight.bold,
