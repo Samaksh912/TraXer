@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_widget_description">TraXer — tap to add an expense by voice</string>
+    <string name="voice_widget_button">Add voice expense</string>
+    <string name="app_name">TraXer</string>
+</resources>

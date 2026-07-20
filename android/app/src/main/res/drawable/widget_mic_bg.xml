@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Circular gradient background for the mic widget button -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <gradient
+        android:angle="135"
+        android:startColor="#D96C4A"
+        android:endColor="#B84A2E"
+        android:type="linear" />
+
+    <size
+        android:width="56dp"
+        android:height="56dp" />
+
+</shape>
